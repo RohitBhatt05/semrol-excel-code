@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    name: Build APK
+    name: Build Release APK
     runs-on: ubuntu-latest
     env:
       ANDROID_HOME: /usr/local/lib/android/sdk
@@ -36,15 +36,21 @@ jobs:
           [ -f user-icon.jpg ] && cp user-icon.jpg www/ || true
           npx cap sync android
 
-      - name: Build Debug APK
+      - name: Create Production Keystore & Build Release APK
         working-directory: ./android
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug --stacktrace
+          if [ ! -f app/release.keystore ]; then
+            keytool -genkeypair -v -keystore app/release.keystore \
+              -alias bhupendragupta -keyalg RSA -keysize 2048 -validity 10000 \
+              -storepass "BhupendraApp2026@" -keypass "BhupendraApp2026@" \
+              -dname "CN=Bhupendra Gupta, OU=Trading, O=Semrol, L=Delhi, C=IN"
+          fi
+          ./gradlew assembleRelease --stacktrace
 
-      - name: Upload APK Artifact
+      - name: Upload Signed Release APK
         uses: actions/upload-artifact@v4
         with:
-          name: Bhupendra-Gupta-APK
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          name: Bhupendra-Gupta-Release-APK
+          path: android/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
