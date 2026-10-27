@@ -23,23 +23,28 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '17'
+          cache: gradle
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Install Dependencies & Sync Capacitor
+      - name: Prepare Web Assets & Sync Capacitor
         run: |
-          npm ci || npm install
+          npm install
+          mkdir -p www
+          cp index.html style.css app.js papaparse.min.js manifest.json icon-192.png icon-512.png www/ || true
+          [ -f user-icon.jpg ] && cp user-icon.jpg www/ || true
           npx cap sync android
 
       - name: Build Debug APK
         working-directory: ./android
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleDebug --stacktrace
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: OptionChainScanner-APK
+          name: Bhupendra-Gupta-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
