@@ -295,7 +295,7 @@ function renderSummaryTable() {
       <tr class="data-row" data-index="${i}">
         <td class="td-date">
           <div class="date-label">${escHtml(r.date)}</div>
-          <div class="date-file">${escHtml(shortName(r.name, 28))}</div>
+          <div class="date-file">${escHtml(r.name)}</div>
         </td>
         ${callsCells}
         <td class="td-strike">${r.strikeCount}</td>

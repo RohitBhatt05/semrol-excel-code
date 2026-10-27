@@ -973,8 +973,8 @@ tbody tr:last-child td {
   color: #ffffff !important;
   background: #382b73 !important;
   border-right: 2px solid rgba(255, 255, 255, 0.3) !important;
-  min-width: 78px;
-  max-width: 86px;
+  min-width: 85px;
+  max-width: 105px;
   padding: 5px 4px;
 }
 
@@ -997,8 +997,8 @@ td.td-date {
   border-right: 2px solid #cbd5e1 !important;
   border-bottom: 1px solid #e2e8f0;
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-  min-width: 78px;
-  max-width: 86px;
+  min-width: 85px;
+  max-width: 105px;
   padding: 5px 5px;
 }
 
@@ -1013,11 +1013,12 @@ td.td-date {
 .date-file {
   font-size: 8.5px;
   color: #64748b;
-  margin-top: 1px;
+  margin-top: 2px;
   font-family: 'Inter', sans-serif;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  word-break: break-all;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  line-height: 1.25;
 }
 
 /* Data cells */
