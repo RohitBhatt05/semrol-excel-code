@@ -420,7 +420,6 @@ function showEmpty() {
     <div class="empty-state">
       <span class="empty-icon">📂</span>
       <h3>No CSV files loaded yet</h3>
-      <p>Upload 1–7+ NSE Option Chain CSV files<br/>The app will calculate date-wise column totals automatically</p>
     </div>`;
 }
 
