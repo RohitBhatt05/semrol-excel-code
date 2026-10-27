@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="description"
+    content="NSE Option Chain Scanner — Upload CSV files to instantly calculate CALLS and PUTS column totals, date-wise breakdowns and combined grand totals." />
+  <meta name="theme-color" content="#0b0e1a" />
+
+  <!-- PWA: Make it installable on Android (Add to Home Screen) -->
+  <link rel="manifest" href="manifest.json" />
+
+  <!-- iOS Safari PWA support -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Bhupendra Gupta" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+
+  <title>Bhupendra Gupta</title>
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- PapaParse bundled locally — works 100% offline after first load -->
+  <script src="papaparse.min.js"></script>
+</head>
+
+<body>
+
+  <!-- ══ STICKY HEADER ══ -->
+  <header class="app-header" role="banner">
+    <div class="header-inner">
+      <div class="app-logo">
+        <img src="icon-192.png" alt="Bhupendra Gupta Logo" class="logo-img" />
+        <div class="logo-text-group">
+          <span class="logo-text">Bhupendra Gupta</span>
+          <span class="logo-sub">NSE Multi-Date Totals</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="clearBtn" class="btn btn-clear" title="Clear all files" aria-label="Clear all files">
+          <span class="clear-icon">🗑️</span>
+          <span class="clear-text">Clear</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ══ INSTALL BANNER (shown only when PWA is installable) ══ -->
+  <div class="install-banner" id="installBanner" style="display:none">
+    <span>📲 Install as App — tap to add to your Home Screen</span>
+    <button id="installBtn" class="btn btn-install">Install</button>
+    <button id="dismissInstall" class="btn-icon" aria-label="Dismiss">✕</button>
+  </div>
+
+  <!-- ══ MAIN ══ -->
+  <main class="app-main" role="main">
+
+    <!-- Upload Zone -->
+    <section class="upload-section" aria-label="File Upload">
+      <div class="upload-zone" id="uploadZone" role="button" tabindex="0"
+        aria-label="Drop CSV files here or tap to browse">
+        <span class="upload-icon" aria-hidden="true">📥</span>
+        <h1 class="upload-title">Upload NSE Option Chain CSV Files</h1>
+        <p class="upload-subtitle">
+          Upload <strong>1 to 7+ CSV files</strong> — each file is calculated as one date row with column totals
+        </p>
+        <button id="browseBtn" class="upload-btn" type="button">📂 Browse CSV Files</button>
+        <input type="file" id="fileInput" accept=".csv,text/csv,text/plain,application/vnd.ms-excel" multiple
+          aria-label="CSV file input" />
+        <div class="file-chip-list" id="fileChips" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- Stats Bar -->
+    <section class="stats-bar" id="statsBar" aria-label="Summary stats" style="display:none"></section>
+
+    <!-- ═══ DATE-WISE SUMMARY TABLE ═══ -->
+    <section id="summarySection" aria-label="Date-wise summary table" aria-live="polite"></section>
+
+  </main>
+
+  <!-- ══ BOTTOM BAR ══ -->
+  <div class="bottom-bar" id="bottomBar" role="complementary">
+    <div class="bottom-bar-inner">
+      <div class="bottom-stat ba">
+        <span class="bl">Files</span>
+        <span class="bv" id="bbFiles">0</span>
+      </div>
+      <div class="bsep"></div>
+      <div class="bottom-stat">
+        <span class="bl">Strikes</span>
+        <span class="bv" id="bbStrikes">0</span>
+      </div>
+      <div class="bsep"></div>
+      <div class="bottom-stat bc">
+        <span class="bl">CALLS OI</span>
+        <span class="bv" id="bbCallsOI">0</span>
+      </div>
+      <div class="bsep"></div>
+      <div class="bottom-stat bp">
+        <span class="bl">PUTS OI</span>
+        <span class="bv" id="bbPutsOI">0</span>
+      </div>
+      <div class="bsep"></div>
+      <div class="bottom-stat" style="color:var(--grand-light)">
+        <span class="bl">PCR</span>
+        <span class="bv" id="bbPCR" style="color:var(--grand-light)">—</span>
+      </div>
+      <button id="clearBtnBar" class="btn btn-danger">🗑️ Clear</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+
+  <!-- ══ PWA: Service Worker Registration ══ -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('✅ SW registered:', reg.scope))
+          .catch(err => console.warn('SW registration failed:', err));
+      });
+    }
+
+    // Android Chrome "Add to Home Screen" prompt
+    let deferredPrompt;
+    const installBanner = document.getElementById('installBanner');
+    const installBtn = document.getElementById('installBtn');
+    const dismissBtn = document.getElementById('dismissInstall');
+
+    window.addEventListener('beforeinstallprompt', e => {
+      e.preventDefault();
+      deferredPrompt = e;
+      installBanner.style.display = 'flex';
+    });
+
+    installBtn.addEventListener('click', async () => {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      installBanner.style.display = 'none';
+      console.log('Install outcome:', outcome);
+    });
+
+    dismissBtn.addEventListener('click', () => {
+      installBanner.style.display = 'none';
+    });
+
+    // Already installed — hide banner
+    window.addEventListener('appinstalled', () => {
+      installBanner.style.display = 'none';
+      deferredPrompt = null;
+    });
+  </script>
+</body>
+
+</html>

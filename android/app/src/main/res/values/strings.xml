@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Bhupendra Gupta</string>
+    <string name="title_activity_main">Bhupendra Gupta</string>
+    <string name="package_name">com.scanner.optionchain</string>
+    <string name="custom_url_scheme">com.scanner.optionchain</string>
+</resources>
