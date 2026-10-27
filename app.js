@@ -1,46 +1,12 @@
 // ============================================================
-// NSE Option Chain Scanner — app.js
-// Layout: date-wise summary table (one row per file)
-//         + grand total row at the bottom
-//         + per-file detail expandable section
+// Multi-Format Option Chain Scanner — app.js
+// Supports NSE (NIFTY), BSE (SENSEX), and other option chain formats.
+// Columns, headers, and totals are dynamically generated from CSV structure.
 // ============================================================
-
-// ── Column definitions (0-indexed after skipping 2-header rows) ──
-// [0]=empty [1]=CALLS_OI [2]=CALLS_CHNG_OI [3]=CALLS_VOLUME [4]=CALLS_IV
-// [5]=CALLS_LTP [6]=CALLS_CHNG [7]=CALLS_BID_QTY [8]=CALLS_BID
-// [9]=CALLS_ASK [10]=CALLS_ASK_QTY [11]=STRIKE
-// [12]=PUTS_BID_QTY [13]=PUTS_BID [14]=PUTS_ASK [15]=PUTS_ASK_QTY
-// [16]=PUTS_CHNG [17]=PUTS_LTP [18]=PUTS_IV [19]=PUTS_VOLUME
-// [20]=PUTS_CHNG_OI [21]=PUTS_OI [22]=empty
-
-const CALLS_COLS = [
-  { idx: 1, key: 'OI' },
-  { idx: 2, key: 'CHNG IN OI' },
-  { idx: 3, key: 'VOLUME' },
-  { idx: 4, key: 'IV' },
-  { idx: 5, key: 'LTP' },
-  { idx: 6, key: 'CHNG' },
-  { idx: 7, key: 'BID QTY' },
-  { idx: 8, key: 'BID' },
-  { idx: 9, key: 'ASK' },
-  { idx: 10, key: 'ASK QTY' },
-];
-const STRIKE_IDX = 11;
-const PUTS_COLS = [
-  { idx: 12, key: 'BID QTY' },
-  { idx: 13, key: 'BID' },
-  { idx: 14, key: 'ASK' },
-  { idx: 15, key: 'ASK QTY' },
-  { idx: 16, key: 'CHNG' },
-  { idx: 17, key: 'LTP' },
-  { idx: 18, key: 'IV' },
-  { idx: 19, key: 'VOLUME' },
-  { idx: 20, key: 'CHNG IN OI' },
-  { idx: 21, key: 'OI' },
-];
 
 // ── State ──
 let allFileResults = [];
+let activeFormatFilter = 'ALL';
 
 // ── DOM refs ──
 const uploadZone = document.getElementById('uploadZone');
@@ -55,14 +21,17 @@ const clearBtnBar = document.getElementById('clearBtnBar');
 
 // ─────────────────────────────────────────────
 // Extract date from filename
-// e.g. "option-chain-ED-NIFTY-27-Oct-2026_5463.csv" → "27 Oct 2026"
+// Supports:
+// 1) "option-chain-ED-NIFTY-27-Oct-2026_5463.csv" → "27 Oct 2026"
+// 2) "IO_OptionChain_SENSEX_27102026_115843_1598.csv" → "27 Oct 2026"
+// 3) "27-10-2026" or "2026-10-27"
 // ─────────────────────────────────────────────
 function extractDate(filename) {
-  // Pattern: digits-MonthName-digits  e.g. 27-Oct-2026
-  const m = filename.match(/(\d{1,2})[-_\s]([A-Za-z]{3,9})[-_\s](\d{4})/);
-  if (m) return `${m[1]} ${capitalize(m[2])} ${m[3]}`;
+  // Pattern 1: digits-MonthName-digits  e.g. 27-Oct-2026 or 27_Oct_2026
+  const m1 = filename.match(/(\d{1,2})[-_\s]([A-Za-z]{3,9})[-_\s](\d{4})/);
+  if (m1) return `${m1[1]} ${capitalize(m1[2])} ${m1[3]}`;
 
-  // Pattern: digits-digits-digits (dd-mm-yyyy or yyyy-mm-dd)
+  // Pattern 2: digits-digits-digits (dd-mm-yyyy or dd_mm_yyyy)
   const m2 = filename.match(/(\d{2})[-_](\d{2})[-_](\d{4})/);
   if (m2) {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -70,12 +39,24 @@ function extractDate(filename) {
     return `${m2[1]} ${mon} ${m2[3]}`;
   }
 
-  // Pattern: yyyy-mm-dd
+  // Pattern 3: yyyy-mm-dd or yyyy_mm_dd
   const m3 = filename.match(/(\d{4})[-_](\d{2})[-_](\d{2})/);
   if (m3) {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const mon = months[parseInt(m3[2], 10) - 1] || m3[2];
     return `${m3[3]} ${mon} ${m3[1]}`;
+  }
+
+  // Pattern 4: ddmmyyyy consecutive (e.g. 27102026 in IO_OptionChain_SENSEX_27102026_115843_1598.csv)
+  const m4 = filename.match(/(?:^|[^0-9])(\d{2})(\d{2})(\d{4})(?:[^0-9]|$)/);
+  if (m4) {
+    const day = parseInt(m4[1], 10);
+    const monNum = parseInt(m4[2], 10);
+    const year = parseInt(m4[3], 10);
+    if (day >= 1 && day <= 31 && monNum >= 1 && monNum <= 12 && year >= 2000 && year <= 2099) {
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      return `${m4[1]} ${months[monNum - 1]} ${m4[3]}`;
+    }
   }
 
   return '—';
@@ -123,7 +104,16 @@ function cellColor(n) {
 }
 
 // ─────────────────────────────────────────────
-// Parse CSV with PapaParse
+// Escape HTML
+// ─────────────────────────────────────────────
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// ─────────────────────────────────────────────
+// Parse CSV with PapaParse (resolves all rows)
 // ─────────────────────────────────────────────
 function parseCSV(file) {
   return new Promise((resolve, reject) => {
@@ -132,10 +122,10 @@ function parseCSV(file) {
       complete(results) {
         const rows = results.data;
         if (rows.length < 3) {
-          reject(new Error('File has no data rows.'));
+          reject(new Error('File has insufficient data rows.'));
           return;
         }
-        resolve(rows.slice(2)); // skip 2-row header
+        resolve(rows);
       },
       error(err) { reject(err); }
     });
@@ -143,27 +133,75 @@ function parseCSV(file) {
 }
 
 // ─────────────────────────────────────────────
+// Detect Dynamic Structure from Header Rows
+// ─────────────────────────────────────────────
+function detectStructure(rows) {
+  // Check row 1 first (standard for 2-row header option chains), fallback to row 0
+  let headerRowIdx = 1;
+  let headerRow = rows[1];
+  let strikeIdx = headerRow ? headerRow.findIndex(c => /strike/i.test(c)) : -1;
+
+  if (strikeIdx === -1 && rows[0]) {
+    headerRowIdx = 0;
+    headerRow = rows[0];
+    strikeIdx = headerRow.findIndex(c => /strike/i.test(c));
+  }
+
+  if (strikeIdx === -1) {
+    throw new Error('Could not identify central STRIKE column in CSV.');
+  }
+
+  const callsCols = [];
+  for (let i = 0; i < strikeIdx; i++) {
+    const raw = (headerRow[i] || '').trim();
+    if (!raw || /no text|^-$|^\s*$/i.test(raw)) continue;
+    callsCols.push({ idx: i, key: raw });
+  }
+
+  const putsCols = [];
+  for (let i = strikeIdx + 1; i < headerRow.length; i++) {
+    const raw = (headerRow[i] || '').trim();
+    if (!raw || /no text|^-$|^\s*$/i.test(raw)) continue;
+    putsCols.push({ idx: i, key: raw });
+  }
+
+  const strikeName = (headerRow[strikeIdx] || 'STRIKE').trim();
+  const signature = callsCols.map(c => c.key).join(',') + '::' + putsCols.map(c => c.key).join(',');
+
+  return {
+    headerRowIdx,
+    strikeIdx,
+    strikeName,
+    callsCols,
+    putsCols,
+    signature
+  };
+}
+
+// ─────────────────────────────────────────────
 // Calculate column totals from data rows
 // ─────────────────────────────────────────────
-function calcTotals(dataRows) {
-  const calls = Object.fromEntries(CALLS_COLS.map(c => [c.key, 0]));
-  const puts = Object.fromEntries(PUTS_COLS.map(c => [c.key, 0]));
+function calcTotals(rows, structure) {
+  const { headerRowIdx, strikeIdx, callsCols, putsCols } = structure;
+  const calls = Object.fromEntries(callsCols.map(c => [c.key, 0]));
+  const puts = Object.fromEntries(putsCols.map(c => [c.key, 0]));
   const strikes = [];
   let strikeCount = 0;
 
-  for (const row of dataRows) {
-    if (!row || row.length < 12) continue;
-    const strike = parseNum(row[STRIKE_IDX]);
+  for (let r = headerRowIdx + 1; r < rows.length; r++) {
+    const row = rows[r];
+    if (!row || row.length <= strikeIdx) continue;
+    const strike = parseNum(row[strikeIdx]);
     if (strike === 0) continue;
     strikeCount++;
 
     const cRow = {}, pRow = {};
-    for (const col of CALLS_COLS) {
+    for (const col of callsCols) {
       const v = parseNum(row[col.idx]);
       calls[col.key] += v;
       cRow[col.key] = v;
     }
-    for (const col of PUTS_COLS) {
+    for (const col of putsCols) {
       const v = parseNum(row[col.idx]);
       puts[col.key] += v;
       pRow[col.key] = v;
@@ -175,102 +213,79 @@ function calcTotals(dataRows) {
 }
 
 // ─────────────────────────────────────────────
-// Process one file
+// Process one file dynamically
 // ─────────────────────────────────────────────
 async function processFile(file) {
-  const dataRows = await parseCSV(file);
-  const { calls, puts, strikes, strikeCount } = calcTotals(dataRows);
+  const rows = await parseCSV(file);
+  const structure = detectStructure(rows);
+  const { calls, puts, strikes, strikeCount } = calcTotals(rows, structure);
+
+  // Friendly format name e.g. "SENSEX", "NIFTY", etc.
+  let formatLabel = 'Option Chain';
+  if (/sensex/i.test(file.name) || /sensex/i.test(structure.strikeName)) {
+    formatLabel = 'SENSEX';
+  } else if (/nifty/i.test(file.name) || /nifty/i.test(structure.strikeName)) {
+    formatLabel = 'NIFTY';
+  } else if (/banknifty/i.test(file.name)) {
+    formatLabel = 'BANKNIFTY';
+  } else {
+    formatLabel = structure.strikeName || 'Option Chain';
+  }
+
   return {
     name: file.name,
     date: extractDate(file.name),
+    formatLabel,
+    structure,
     strikeCount,
     calls,
     puts,
-    strikes,
+    strikes
   };
 }
 
 // ─────────────────────────────────────────────
-// Escape HTML
+// Render single table for a format group
 // ─────────────────────────────────────────────
-function escHtml(s) {
-  return String(s)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
+function renderGroupTable(group) {
+  const { formatLabel, structure, files } = group;
+  const { callsCols, putsCols, strikeName } = structure;
 
-// ─────────────────────────────────────────────
-// Build the main DATE-WISE SUMMARY TABLE
-// Layout: DATE | CALLS (10 cols) | STRIKE (centered) | PUTS (10 cols)
-// Matches NSE Option Chain colors and layout exactly
-// PCR column removed per user specification
-// ─────────────────────────────────────────────
-function renderSummaryTable() {
-  if (allFileResults.length === 0) {
-    summarySection.innerHTML = '';
-    return;
-  }
-
-  // CALLS columns (left side, cols 1-10)
-  const callsHeaderCols = [
-    { side: 'calls', key: 'OI' },
-    { side: 'calls', key: 'CHNG IN OI' },
-    { side: 'calls', key: 'VOLUME' },
-    { side: 'calls', key: 'IV' },
-    { side: 'calls', key: 'LTP' },
-    { side: 'calls', key: 'CHNG' },
-    { side: 'calls', key: 'BID QTY' },
-    { side: 'calls', key: 'BID' },
-    { side: 'calls', key: 'ASK' },
-    { side: 'calls', key: 'ASK QTY' },
-  ];
-
-  // PUTS columns (right side, cols 12-21)
-  const putsHeaderCols = [
-    { side: 'puts', key: 'BID QTY' },
-    { side: 'puts', key: 'BID' },
-    { side: 'puts', key: 'ASK' },
-    { side: 'puts', key: 'ASK QTY' },
-    { side: 'puts', key: 'CHNG' },
-    { side: 'puts', key: 'LTP' },
-    { side: 'puts', key: 'IV' },
-    { side: 'puts', key: 'VOLUME' },
-    { side: 'puts', key: 'CHNG IN OI' },
-    { side: 'puts', key: 'OI' },
-  ];
-
-  // Grand totals
+  // Calculate grand totals across all files in this group
   const grand = {};
-  for (const col of callsHeaderCols) grand['calls_' + col.key] = 0;
-  for (const col of putsHeaderCols) grand['puts_' + col.key] = 0;
-  for (const r of allFileResults) {
-    for (const col of callsHeaderCols) {
-      grand['calls_' + col.key] += r.calls[col.key];
+  for (const c of callsCols) grand['calls_' + c.key] = 0;
+  for (const p of putsCols) grand['puts_' + p.key] = 0;
+  let totalStrikes = 0;
+
+  for (const r of files) {
+    totalStrikes += r.strikeCount;
+    for (const c of callsCols) {
+      grand['calls_' + c.key] += (r.calls[c.key] || 0);
     }
-    for (const col of putsHeaderCols) {
-      grand['puts_' + col.key] += r.puts[col.key];
+    for (const p of putsCols) {
+      grand['puts_' + p.key] += (r.puts[p.key] || 0);
     }
   }
 
-  // Headers: Strike centered between Calls and Puts, PCR removed
+  // Headers: Strike centered between Calls and Puts
   const headerRow1 = `
     <tr>
       <th rowspan="2" class="th-date">DATE</th>
-      <th colspan="${callsHeaderCols.length}" class="th-calls-group">CALLS</th>
-      <th rowspan="2" class="th-strike">STRIKE</th>
-      <th colspan="${putsHeaderCols.length}" class="th-puts-group">PUTS</th>
+      <th colspan="${callsCols.length}" class="th-calls-group">CALLS</th>
+      <th rowspan="2" class="th-strike">${escHtml(strikeName)}</th>
+      <th colspan="${putsCols.length}" class="th-puts-group">PUTS</th>
     </tr>
     <tr>
-      ${callsHeaderCols.map(c => `<th class="th-calls">${c.key}</th>`).join('')}
-      ${putsHeaderCols.map(c => `<th class="th-puts">${c.key}</th>`).join('')}
+      ${callsCols.map(c => `<th class="th-calls">${escHtml(c.key)}</th>`).join('')}
+      ${putsCols.map(p => `<th class="th-puts">${escHtml(p.key)}</th>`).join('')}
     </tr>`;
 
   // Data rows — one per file
-  const dataRows = allFileResults.map((r, i) => {
-    const callsCells = callsHeaderCols.map(col => {
-      const v = r.calls[col.key];
-      const isChng = col.key === 'CHNG IN OI' || col.key === 'CHNG';
-      const isLtp = col.key === 'LTP';
+  const dataRows = files.map((r, i) => {
+    const callsCells = callsCols.map(col => {
+      const v = r.calls[col.key] || 0;
+      const isChng = /ch(?:an)?g/i.test(col.key);
+      const isLtp = /^ltp$/i.test(col.key);
       let cls = 'td-calls';
       if (isLtp) cls += ' td-ltp';
       if (isChng) {
@@ -279,10 +294,10 @@ function renderSummaryTable() {
       return `<td class="${cls}">${fmtCompact(v)}</td>`;
     }).join('');
 
-    const putsCells = putsHeaderCols.map(col => {
-      const v = r.puts[col.key];
-      const isChng = col.key === 'CHNG IN OI' || col.key === 'CHNG';
-      const isLtp = col.key === 'LTP';
+    const putsCells = putsCols.map(col => {
+      const v = r.puts[col.key] || 0;
+      const isChng = /ch(?:an)?g/i.test(col.key);
+      const isLtp = /^ltp$/i.test(col.key);
       let cls = 'td-puts';
       if (isLtp) cls += ' td-ltp';
       if (isChng) {
@@ -293,7 +308,7 @@ function renderSummaryTable() {
 
     return `
       <tr class="data-row" data-index="${i}">
-        <td class="td-date">
+        <td class="td-date" title="${escHtml(r.name)}">
           <div class="date-label">${escHtml(r.date)}</div>
           <div class="date-file">${escHtml(r.name)}</div>
         </td>
@@ -303,36 +318,34 @@ function renderSummaryTable() {
       </tr>`;
   }).join('');
 
-  // Grand TOTAL row
-  const callsTotalCells = callsHeaderCols.map(col => {
-    const v = grand['calls_' + col.key];
-    const isChng = col.key === 'CHNG IN OI' || col.key === 'CHNG';
-    const isLtp = col.key === 'LTP';
+  // Combined TOTAL row for this group
+  const callsTotalCells = callsCols.map(col => {
+    const v = grand['calls_' + col.key] || 0;
+    const isChng = /ch(?:an)?g/i.test(col.key);
+    const isLtp = /^ltp$/i.test(col.key);
     let cls = 'td-calls total-cell';
     if (isLtp) cls += ' td-ltp';
     if (isChng) return `<td class="${cls}"${cellColor(v)}>${fmtSign(v)}</td>`;
     return `<td class="${cls}">${fmtCompact(v)}</td>`;
   }).join('');
 
-  const putsTotalCells = putsHeaderCols.map(col => {
-    const v = grand['puts_' + col.key];
-    const isChng = col.key === 'CHNG IN OI' || col.key === 'CHNG';
-    const isLtp = col.key === 'LTP';
+  const putsTotalCells = putsCols.map(col => {
+    const v = grand['puts_' + col.key] || 0;
+    const isChng = /ch(?:an)?g/i.test(col.key);
+    const isLtp = /^ltp$/i.test(col.key);
     let cls = 'td-puts total-cell';
     if (isLtp) cls += ' td-ltp';
     if (isChng) return `<td class="${cls}"${cellColor(v)}>${fmtSign(v)}</td>`;
     return `<td class="${cls}">${fmtCompact(v)}</td>`;
   }).join('');
 
-  const totalStrikes = allFileResults.reduce((a, r) => a + r.strikeCount, 0);
-
-  summarySection.innerHTML = `
-    <div class="summary-card">
+  return `
+    <div class="summary-card" data-format="${escHtml(formatLabel)}">
       <div class="summary-card-header">
         <span class="summary-icon">📊</span>
         <div class="summary-card-titles">
-          <h2 class="summary-title">Date-wise Summary Table</h2>
-          <p class="summary-sub">${allFileResults.length} date${allFileResults.length > 1 ? 's' : ''} loaded · Strike centered between Calls &amp; Puts</p>
+          <h2 class="summary-title">${escHtml(formatLabel)} Date-wise Summary Table</h2>
+          <p class="summary-sub">${files.length} date${files.length > 1 ? 's' : ''} loaded · ${escHtml(strikeName)} centered between Calls &amp; Puts</p>
         </div>
       </div>
       <div class="mobile-scroll-hint">
@@ -356,60 +369,69 @@ function renderSummaryTable() {
 }
 
 // ─────────────────────────────────────────────
-// Stats bar + bottom bar
+// Format Filter Switcher
 // ─────────────────────────────────────────────
-function updateStats() {
+window.setFormatFilter = function(filter) {
+  activeFormatFilter = filter;
+  renderSummaryTable();
+};
+
+// ─────────────────────────────────────────────
+// Build Date-wise Summary Tables (Multi-Format Support)
+// ─────────────────────────────────────────────
+function renderSummaryTable() {
   if (allFileResults.length === 0) {
-    statsBar.innerHTML = '';
-    statsBar.style.display = 'none';
-    bottomBar.classList.remove('visible');
+    summarySection.innerHTML = '';
     return;
   }
 
-  const totalStrikes = allFileResults.reduce((a, r) => a + r.strikeCount, 0);
-  const totalCallsOI = allFileResults.reduce((a, r) => a + r.calls['OI'], 0);
-  const totalPutsOI = allFileResults.reduce((a, r) => a + r.puts['OI'], 0);
-  const totalCallsVol = allFileResults.reduce((a, r) => a + r.calls['VOLUME'], 0);
-  const totalPutsVol = allFileResults.reduce((a, r) => a + r.puts['VOLUME'], 0);
-  const pcr = totalCallsOI > 0 ? (totalPutsOI / totalCallsOI).toFixed(3) : '—';
+  // Group files by dynamic structure signature
+  const groups = {};
+  for (const r of allFileResults) {
+    const sig = r.structure.signature;
+    if (!groups[sig]) {
+      groups[sig] = {
+        signature: sig,
+        formatLabel: r.formatLabel,
+        structure: r.structure,
+        files: []
+      };
+    }
+    groups[sig].files.push(r);
+  }
 
-  statsBar.style.display = 'flex';
-  statsBar.innerHTML = `
-    <div class="stat-pill files">
-      <span>📁</span>
-      <div><div class="stat-label">Files</div><div class="stat-value">${allFileResults.length}</div></div>
-    </div>
-    <div class="stat-pill strikes">
-      <span>🎯</span>
-      <div><div class="stat-label">Total Strikes</div><div class="stat-value">${totalStrikes}</div></div>
-    </div>
-    <div class="stat-pill calls">
-      <span>📈</span>
-      <div><div class="stat-label">CALLS OI</div><div class="stat-value">${fmtCompact(totalCallsOI)}</div></div>
-    </div>
-    <div class="stat-pill puts">
-      <span>📉</span>
-      <div><div class="stat-label">PUTS OI</div><div class="stat-value">${fmtCompact(totalPutsOI)}</div></div>
-    </div>
-    <div class="stat-pill calls">
-      <span>🔁</span>
-      <div><div class="stat-label">CALLS VOL</div><div class="stat-value">${fmtCompact(totalCallsVol)}</div></div>
-    </div>
-    <div class="stat-pill puts">
-      <span>🔁</span>
-      <div><div class="stat-label">PUTS VOL</div><div class="stat-value">${fmtCompact(totalPutsVol)}</div></div>
-    </div>
-    <div class="stat-pill" style="border-color:rgba(251,191,36,0.3)">
-      <span>⚖️</span>
-      <div><div class="stat-label">PCR (OI)</div><div class="stat-value" style="color:var(--grand-light)">${pcr}</div></div>
-    </div>`;
+  const groupList = Object.values(groups);
+  // Sort files within each group chronologically
+  groupList.forEach(g => {
+    g.files.sort((a, b) => a.date.localeCompare(b.date));
+  });
 
-  bottomBar.classList.add('visible');
-  document.getElementById('bbFiles').textContent = allFileResults.length;
-  document.getElementById('bbStrikes').textContent = totalStrikes;
-  document.getElementById('bbCallsOI').textContent = fmtCompact(totalCallsOI);
-  document.getElementById('bbPutsOI').textContent = fmtCompact(totalPutsOI);
-  document.getElementById('bbPCR').textContent = pcr;
+  let html = '';
+
+  // If multiple distinct formats are uploaded, render format filter tabs
+  if (groupList.length > 1) {
+    html += `
+      <div class="format-tabs-wrap">
+        <div class="format-tabs">
+          <button class="format-tab ${activeFormatFilter === 'ALL' ? 'active' : ''}" onclick="setFormatFilter('ALL')">
+            All Formats (${allFileResults.length} files)
+          </button>
+          ${groupList.map(g => `
+            <button class="format-tab ${activeFormatFilter === g.formatLabel ? 'active' : ''}" onclick="setFormatFilter('${escHtml(g.formatLabel)}')">
+              ${escHtml(g.formatLabel)} (${g.files.length})
+            </button>
+          `).join('')}
+        </div>
+      </div>`;
+  }
+
+  const visibleGroups = activeFormatFilter === 'ALL'
+    ? groupList
+    : groupList.filter(g => g.formatLabel === activeFormatFilter);
+
+  const toRender = visibleGroups.length > 0 ? visibleGroups : groupList;
+  html += toRender.map(g => renderGroupTable(g)).join('<div style="height: 24px;"></div>');
+  summarySection.innerHTML = html;
 }
 
 // ─────────────────────────────────────────────
@@ -475,11 +497,7 @@ async function handleFiles(files) {
 
   allFileResults.push(...newResults);
 
-  // Sort by date string to keep chronological order
-  allFileResults.sort((a, b) => a.date.localeCompare(b.date));
-
   renderSummaryTable();
-  // updateStats();
 
   if (errors.length > 0) {
     errors.forEach(e => {
@@ -500,11 +518,14 @@ async function handleFiles(files) {
 // ─────────────────────────────────────────────
 function clearAll() {
   allFileResults = [];
+  activeFormatFilter = 'ALL';
   fileChips.innerHTML = '';
   fileInput.value = '';
-  statsBar.innerHTML = '';
-  statsBar.style.display = 'none';
-  bottomBar.classList.remove('visible');
+  if (statsBar) {
+    statsBar.innerHTML = '';
+    statsBar.style.display = 'none';
+  }
+  if (bottomBar) bottomBar.classList.remove('visible');
   showEmpty();
 }
 
@@ -544,8 +565,6 @@ fileInput.addEventListener('change', () => {
   if (fileInput.files && fileInput.files.length > 0) {
     handleFiles(fileInput.files);
   }
-
-  // Allow selecting the same files again later.
   fileInput.value = '';
 });
 
@@ -564,4 +583,3 @@ if (clearBtnBar) clearBtnBar.addEventListener('click', clearAll);
 // Init
 // ─────────────────────────────────────────────
 showEmpty();
-statsBar.style.display = 'none';
