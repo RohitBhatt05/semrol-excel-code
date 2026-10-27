@@ -1,11 +1,11 @@
 /* ============================================================
-   NSE Option Chain Scanner — style.css
+   NSE Option Chain Scanner â€” style.css
    Dark theme | Mobile-first | Responsive
    ============================================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
 
-/* ── Design Tokens ── */
+/* â”€â”€ Design Tokens â”€â”€ */
 :root {
   --bg-base: #0b0e1a;
   --bg-surface: #111827;
@@ -53,7 +53,7 @@
   --transition: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ── Reset ── */
+/* â”€â”€ Reset â”€â”€ */
 *,
 *::before,
 *::after {
@@ -75,7 +75,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* ── Scrollbar ── */
+/* â”€â”€ Scrollbar â”€â”€ */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -90,9 +90,9 @@ body {
   border-radius: 3px;
 }
 
-/* ─────────────────────────────────────────────
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
    HEADER
-───────────────────────────────────────────── */
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .app-header {
   position: sticky;
   top: 0;
@@ -199,18 +199,18 @@ body {
   line-height: 1;
 }
 
-/* ─────────────────────────────────────────────
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
    MAIN LAYOUT (Mobile Android First)
-───────────────────────────────────────────── */
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .app-main {
   max-width: 1200px;
   margin: 0 auto;
   padding: 16px 12px 90px;
 }
 
-/* ─────────────────────────────────────────────
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
    UPLOAD ZONE (Material 3 Surface Card)
-───────────────────────────────────────────── */
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .upload-section {
   margin-bottom: 20px;
 }
@@ -331,9 +331,9 @@ body {
   }
 }
 
-/* ─────────────────────────────────────────────
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
    STATS BAR
-───────────────────────────────────────────── */
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .stats-bar {
   display: flex;
   gap: 12px;
@@ -381,9 +381,9 @@ body {
   color: var(--strike-light);
 }
 
-/* ─────────────────────────────────────────────
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
    FILE RESULT CARD
-───────────────────────────────────────────── */
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .results-section {
   display: flex;
   flex-direction: column;
@@ -478,9 +478,9 @@ body {
   gap: 24px;
 }
 
-/* ─────────────────────────────────────────────
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
    SECTION HEADERS (CALLS / PUTS / STRIKE)
-───────────────────────────────────────────── */
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .section-label {
   display: flex;
   align-items: center;
@@ -535,9 +535,9 @@ body {
   box-shadow: 0 0 6px var(--grand-light);
 }
 
-/* ─────────────────────────────────────────────
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
    TABLE WRAPPER
-───────────────────────────────────────────── */
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .table-wrap {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
@@ -634,9 +634,9 @@ tbody tr:last-child td {
   background: rgba(129, 140, 248, 0.07);
 }
 
-/* ─────────────────────────────────────────────
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
    GRAND TOTAL CARD
-───────────────────────────────────────────── */
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .grand-card {
   background: linear-gradient(135deg, rgba(251, 191, 36, 0.05), rgba(99, 102, 241, 0.05));
   border: 1px solid rgba(251, 191, 36, 0.25);
@@ -684,9 +684,9 @@ tbody tr:last-child td {
   gap: 24px;
 }
 
-/* ─────────────────────────────────────────────
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
    BUTTONS
-───────────────────────────────────────────── */
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -722,9 +722,9 @@ tbody tr:last-child td {
   background: rgba(220, 38, 38, 0.22);
 }
 
-/* ─────────────────────────────────────────────
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
    EMPTY / LOADING / ERROR STATES
-───────────────────────────────────────────── */
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .empty-state {
   text-align: center;
   padding: 64px 24px;
@@ -776,9 +776,9 @@ tbody tr:last-child td {
   }
 }
 
-/* ─────────────────────────────────────────────
-   RESPONSIVE — MOBILE
-───────────────────────────────────────────── */
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   RESPONSIVE â€” MOBILE
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 @media (max-width: 640px) {
   .upload-zone {
     padding: 36px 16px;
@@ -825,9 +825,9 @@ tbody tr:last-child td {
   }
 }
 
-/* ─────────────────────────────────────────────
-   SUMMARY CARD (Date-wise table — Main Android View)
-───────────────────────────────────────────── */
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   SUMMARY CARD (Date-wise table â€” Main Android View)
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .summary-card {
   background: #121829;
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -884,32 +884,33 @@ tbody tr:last-child td {
   letter-spacing: 0.3px;
 }
 
-/* Summary Table specifics — Authentic NSE Option Chain styling */
+/* Summary Table specifics â€” Authentic NSE Option Chain styling */
+/* Summary Table specifics — Compact Fit (Minimum 4-Columns visible on screen) */
 .table-wrap {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   position: relative;
   background: #ffffff;
-  border-radius: 12px;
+  border-radius: 10px;
   border: 1px solid #cbd5e1;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
 }
 
 .summary-table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  font-size: 12px;
+  font-size: 11px;
   white-space: nowrap;
   background: #ffffff;
 }
 
 .summary-table thead th {
-  font-size: 11px;
-  padding: 8px 10px;
+  font-size: 9.5px;
+  padding: 5px 4px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.2px;
   position: sticky;
   top: 0;
   z-index: 2;
@@ -925,40 +926,45 @@ tbody tr:last-child td {
   background: #382b73 !important;
   color: #ffffff !important;
   text-align: center;
-  font-size: 12px;
+  font-size: 10.5px;
   font-weight: 700;
-  letter-spacing: 0.6px;
+  letter-spacing: 0.5px;
   border-right: 1px solid rgba(255, 255, 255, 0.25) !important;
+  padding: 4px 4px !important;
 }
 
 .th-puts-group {
   background: #382b73 !important;
   color: #ffffff !important;
   text-align: center;
-  font-size: 12px;
+  font-size: 10.5px;
   font-weight: 700;
-  letter-spacing: 0.6px;
+  letter-spacing: 0.5px;
+  padding: 4px 4px !important;
 }
 
 .th-calls {
   color: #ffffff !important;
   background: #382b73 !important;
   text-align: right;
-  padding: 7px 9px;
+  padding: 5px 5px;
+  min-width: 66px;
 }
 
 .th-puts {
   color: #ffffff !important;
   background: #382b73 !important;
   text-align: right;
-  padding: 7px 9px;
+  padding: 5px 5px;
+  min-width: 66px;
 }
 
 .th-strike {
   color: #ffffff !important;
   background: #382b73 !important;
   text-align: center;
-  min-width: 80px;
+  min-width: 62px;
+  padding: 5px 4px;
   border-left: 1px solid rgba(255, 255, 255, 0.25) !important;
   border-right: 1px solid rgba(255, 255, 255, 0.25) !important;
 }
@@ -967,6 +973,9 @@ tbody tr:last-child td {
   color: #ffffff !important;
   background: #382b73 !important;
   border-right: 2px solid rgba(255, 255, 255, 0.3) !important;
+  min-width: 78px;
+  max-width: 86px;
+  padding: 5px 4px;
 }
 
 /* Sticky Date Header (stays top-left fixed) */
@@ -987,24 +996,24 @@ td.td-date {
   background: #f8fafc !important;
   border-right: 2px solid #cbd5e1 !important;
   border-bottom: 1px solid #e2e8f0;
-  box-shadow: 2px 0 6px rgba(0, 0, 0, 0.12);
-  min-width: 115px;
-  max-width: 130px;
-  padding: 8px 12px;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  min-width: 78px;
+  max-width: 86px;
+  padding: 5px 5px;
 }
 
 .date-label {
   font-weight: 700;
-  font-size: 12.5px;
+  font-size: 11px;
   color: #0f172a;
   font-family: 'Inter', sans-serif;
-  line-height: 1.2;
+  line-height: 1.15;
 }
 
 .date-file {
-  font-size: 9.5px;
+  font-size: 8.5px;
   color: #64748b;
-  margin-top: 2px;
+  margin-top: 1px;
   font-family: 'Inter', sans-serif;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1013,14 +1022,15 @@ td.td-date {
 
 /* Data cells */
 .summary-table tbody td {
-  padding: 8px 10px;
+  padding: 5px 5px;
   border-bottom: 1px solid #e2e8f0;
   border-right: 1px solid #e2e8f0;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 11.5px;
+  font-size: 10.5px;
   font-variant-numeric: tabular-nums;
   text-align: right;
   color: #1e293b;
+  min-width: 66px;
 }
 
 /* CALLS side cells: Signature NSE light-cream/pale yellow tint */
@@ -1044,6 +1054,8 @@ td.td-date {
   background: #ffffff;
   border-left: 1px solid #cbd5e1 !important;
   border-right: 1px solid #cbd5e1 !important;
+  min-width: 62px;
+  padding: 5px 4px;
 }
 
 /* LTP blue link style like NSE Option Chain */
@@ -1053,15 +1065,15 @@ td.td-date {
   font-weight: 600;
 }
 
-
 /* Grand TOTAL row */
 .total-row td {
   border-top: 2px solid #382b73 !important;
   border-bottom: 2px solid #382b73 !important;
-  padding-top: 10px;
-  padding-bottom: 10px;
+  padding-top: 7px;
+  padding-bottom: 7px;
   font-weight: 700;
   color: #0f172a;
+  font-size: 10.5px;
 }
 
 .total-row td.td-calls {
@@ -1076,6 +1088,7 @@ td.td-date {
   background: #f1f5f9 !important;
   color: #1a56db !important;
   text-decoration: underline;
+  min-width: 62px;
 }
 
 .total-row td.td-date {
@@ -1083,24 +1096,24 @@ td.td-date {
   left: 0;
   z-index: 5;
   background: #f1f5f9 !important;
-  box-shadow: 2px 0 6px rgba(0, 0, 0, 0.15);
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.12);
 }
 
 .total-label {
   color: #dc2626 !important;
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 800;
   font-family: 'Inter', sans-serif;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
 }
 
 .total-cell {
   font-weight: 700 !important;
 }
 
-/* ─────────────────────────────────────────────
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
    BOTTOM STICKY BAR (Android Navigation Style)
-───────────────────────────────────────────── */
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .bottom-bar {
   position: fixed;
   bottom: 0;
