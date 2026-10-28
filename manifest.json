@@ -1,6 +1,6 @@
 {
-  "name": "PMCUKBJKR",
-  "short_name": "PMCUKBJKR",
+  "name": "MPCUKBJKR",
+  "short_name": "MPCUKBJKR",
   "description": "Upload NSE Option Chain CSV files and instantly calculate CALLS and PUTS column totals, date-wise breakdowns and grand totals.",
   "start_url": "./index.html",
   "display": "standalone",
