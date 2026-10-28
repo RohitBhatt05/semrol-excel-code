@@ -102,7 +102,7 @@ function fmtSign(n) {
 }
 
 function cellColor(n) {
-  if (n > 0) return ' style="color:#16a34a;font-weight:600;"';
+  if (n > 0) return ' style="font-weight:600;"';
   if (n < 0) return ' style="color:#dc2626;font-weight:600;"';
   return '';
 }
@@ -393,7 +393,7 @@ function renderGroupTable(group) {
 // ─────────────────────────────────────────────
 // Format Filter Switcher
 // ─────────────────────────────────────────────
-window.setFormatFilter = function(filter) {
+window.setFormatFilter = function (filter) {
   activeFormatFilter = filter;
   renderSummaryTable();
 };
