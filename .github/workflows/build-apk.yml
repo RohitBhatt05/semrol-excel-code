@@ -44,7 +44,7 @@ jobs:
             keytool -genkeypair -v -keystore app/release.keystore \
               -alias bhupendragupta -keyalg RSA -keysize 2048 -validity 10000 \
               -storepass "BhupendraApp2026@" -keypass "BhupendraApp2026@" \
-              -dname "CN=Bhupendra Gupta, OU=Trading, O=Semrol, L=Delhi, C=IN"
+              -dname "CN=PMCUKBJKR, OU=Trading, O=Semrol, L=Delhi, C=IN"
           fi
           ./gradlew assembleRelease --stacktrace
 

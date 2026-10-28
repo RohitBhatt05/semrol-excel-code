@@ -71,9 +71,11 @@ function capitalize(s) {
 // ─────────────────────────────────────────────
 function parseNum(raw) {
   if (raw === null || raw === undefined) return 0;
-  const s = String(raw).trim();
+  let s = String(raw).trim();
   if (s === '' || s === '-' || s === '--') return 0;
-  const cleaned = s.replace(/,/g, '');
+  s = s.replace(/^["']|["']$/g, '').trim();
+  if (s === '' || s === '-' || s === '--') return 0;
+  const cleaned = s.replace(/,/g, '').replace(/[₹$€\s]/g, '');
   const n = parseFloat(cleaned);
   return isNaN(n) ? 0 : n;
 }
@@ -82,17 +84,19 @@ function parseNum(raw) {
 // Number formatters
 // ─────────────────────────────────────────────
 function fmtCompact(n) {
-  if (n === 0) return '-';
-  return n.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  if (n === 0 || isNaN(n)) return '-';
+  const rounded = Math.round((n + Number.EPSILON) * 100) / 100;
+  return rounded.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 }
 
 function fmtFull(n) {
-  if (n === 0) return '0';
-  return n.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  if (n === 0 || isNaN(n)) return '0';
+  const rounded = Math.round((n + Number.EPSILON) * 100) / 100;
+  return rounded.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 }
 
 function fmtSign(n) {
-  if (n === 0) return '-';
+  if (n === 0 || isNaN(n)) return '-';
   const s = fmtFull(Math.abs(n));
   return n < 0 ? `-${s}` : s;
 }
@@ -187,6 +191,7 @@ function calcTotals(rows, structure) {
   const puts = Object.fromEntries(putsCols.map(c => [c.key, 0]));
   const strikes = [];
   let strikeCount = 0;
+  let strikeTotal = 0;
 
   for (let r = headerRowIdx + 1; r < rows.length; r++) {
     const row = rows[r];
@@ -194,6 +199,7 @@ function calcTotals(rows, structure) {
     const strike = parseNum(row[strikeIdx]);
     if (strike === 0) continue;
     strikeCount++;
+    strikeTotal += strike;
 
     const cRow = {}, pRow = {};
     for (const col of callsCols) {
@@ -209,7 +215,15 @@ function calcTotals(rows, structure) {
     strikes.push({ strike, cRow, pRow });
   }
 
-  return { calls, puts, strikes, strikeCount };
+  strikeTotal = Math.round((strikeTotal + Number.EPSILON) * 100) / 100;
+  for (const col of callsCols) {
+    calls[col.key] = Math.round((calls[col.key] + Number.EPSILON) * 100) / 100;
+  }
+  for (const col of putsCols) {
+    puts[col.key] = Math.round((puts[col.key] + Number.EPSILON) * 100) / 100;
+  }
+
+  return { calls, puts, strikes, strikeCount, strikeTotal };
 }
 
 // ─────────────────────────────────────────────
@@ -218,7 +232,7 @@ function calcTotals(rows, structure) {
 async function processFile(file) {
   const rows = await parseCSV(file);
   const structure = detectStructure(rows);
-  const { calls, puts, strikes, strikeCount } = calcTotals(rows, structure);
+  const { calls, puts, strikes, strikeCount, strikeTotal } = calcTotals(rows, structure);
 
   // Friendly format name e.g. "SENSEX", "NIFTY", etc.
   let formatLabel = 'Option Chain';
@@ -238,6 +252,7 @@ async function processFile(file) {
     formatLabel,
     structure,
     strikeCount,
+    strikeTotal,
     calls,
     puts,
     strikes
@@ -256,15 +271,22 @@ function renderGroupTable(group) {
   for (const c of callsCols) grand['calls_' + c.key] = 0;
   for (const p of putsCols) grand['puts_' + p.key] = 0;
   let totalStrikes = 0;
+  let grandStrikeTotal = 0;
 
   for (const r of files) {
-    totalStrikes += r.strikeCount;
+    totalStrikes += (r.strikeCount || 0);
+    grandStrikeTotal += (r.strikeTotal || 0);
     for (const c of callsCols) {
       grand['calls_' + c.key] += (r.calls[c.key] || 0);
     }
     for (const p of putsCols) {
       grand['puts_' + p.key] += (r.puts[p.key] || 0);
     }
+  }
+
+  grandStrikeTotal = Math.round((grandStrikeTotal + Number.EPSILON) * 100) / 100;
+  for (const k in grand) {
+    grand[k] = Math.round((grand[k] + Number.EPSILON) * 100) / 100;
   }
 
   // Headers: Strike centered between Calls and Puts
@@ -313,7 +335,7 @@ function renderGroupTable(group) {
           <div class="date-file">${escHtml(r.name)}</div>
         </td>
         ${callsCells}
-        <td class="td-strike">${r.strikeCount}</td>
+        <td class="td-strike" title="${r.strikeCount} strikes">${fmtCompact(r.strikeTotal)}</td>
         ${putsCells}
       </tr>`;
   }).join('');
@@ -359,7 +381,7 @@ function renderGroupTable(group) {
             <tr class="total-row">
               <td class="td-date total-label">TOTAL</td>
               ${callsTotalCells}
-              <td class="td-strike total-cell">${totalStrikes}</td>
+              <td class="td-strike total-cell" title="${totalStrikes} total strikes across all dates">${fmtCompact(grandStrikeTotal)}</td>
               ${putsTotalCells}
             </tr>
           </tbody>

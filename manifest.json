@@ -1,6 +1,6 @@
 {
-  "name": "Bhupendra Gupta",
-  "short_name": "Bhupendra Gupta",
+  "name": "PMCUKBJKR",
+  "short_name": "PMCUKBJKR",
   "description": "Upload NSE Option Chain CSV files and instantly calculate CALLS and PUTS column totals, date-wise breakdowns and grand totals.",
   "start_url": "./index.html",
   "display": "standalone",
@@ -21,6 +21,9 @@
       "purpose": "any maskable"
     }
   ],
-  "categories": ["finance", "utilities"],
+  "categories": [
+    "finance",
+    "utilities"
+  ],
   "lang": "en"
 }
