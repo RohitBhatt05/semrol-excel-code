@@ -1110,6 +1110,68 @@ td.td-date {
   font-weight: 600;
 }
 
+/* ─────────────────────────────────────────────
+   ACTION / DELETE COLUMN
+───────────────────────────────────────────── */
+.th-action {
+  color: #ffffff !important;
+  background: #382b73 !important;
+  text-align: center !important;
+  min-width: 52px;
+  max-width: 64px;
+  padding: 5px 6px;
+  border-left: 1px solid rgba(255, 255, 255, 0.22) !important;
+}
+
+.td-action {
+  text-align: center !important;
+  vertical-align: middle;
+  min-width: 52px;
+  max-width: 64px;
+  padding: 3px 6px !important;
+  background: #ffffff;
+  border-left: 1px solid #e2e8f0;
+}
+
+.total-row td.td-action {
+  background: #f8fafc !important;
+  border-top: 2px solid #382b73 !important;
+  border-bottom: 2px solid #382b73 !important;
+  border-left: 1px solid #cbd5e1 !important;
+}
+
+.btn-delete-file {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* background: rgba(239, 68, 68, 0.08); */
+  /* border: 1px solid rgba(239, 68, 68, 0.28); */
+  /* border-radius: 6px; */
+  /* width: 28px; */
+  /* height: 28px; */
+  /* font-size: 13px; */
+  cursor: pointer;
+  /* transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); */
+  /* padding: 0; */
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  color: red;
+}
+
+.btn-delete-file:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #ef4444;
+  transform: scale(1.1);
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25);
+}
+
+.btn-delete-file:active {
+  transform: scale(0.92);
+  background: rgba(239, 68, 68, 0.35);
+}
+
+
 /* Grand TOTAL row */
 .total-row td {
   border-top: 2px solid #382b73 !important;

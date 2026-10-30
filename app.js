@@ -296,6 +296,7 @@ function renderGroupTable(group) {
       <th colspan="${callsCols.length}" class="th-calls-group">CALLS</th>
       <th rowspan="2" class="th-strike">${escHtml(strikeName)}</th>
       <th colspan="${putsCols.length}" class="th-puts-group">PUTS</th>
+      <th rowspan="2" class="th-action">ACTION</th>
     </tr>
     <tr>
       ${callsCols.map(c => `<th class="th-calls">${escHtml(c.key)}</th>`).join('')}
@@ -337,6 +338,11 @@ function renderGroupTable(group) {
         ${callsCells}
         <td class="td-strike" title="${r.strikeCount} strikes">${fmtCompact(r.strikeTotal)}</td>
         ${putsCells}
+        <td class="td-action">
+          <button type="button" class="btn-delete-file" data-filename="${escHtml(r.name)}" title="Delete ${escHtml(r.name)}" aria-label="Delete ${escHtml(r.name)}">
+            Delete
+          </button>
+        </td>
       </tr>`;
   }).join('');
 
@@ -383,6 +389,7 @@ function renderGroupTable(group) {
               ${callsTotalCells}
               <td class="td-strike total-cell" title="${totalStrikes} total strikes across all dates">${fmtCompact(grandStrikeTotal)}</td>
               ${putsTotalCells}
+              <td class="td-action total-cell"></td>
             </tr>
           </tbody>
         </table>
@@ -483,6 +490,39 @@ function shortName(name, max = 28) {
 }
 
 // ─────────────────────────────────────────────
+// Synchronize file chips with current state
+function renderFileChips() {
+  fileChips.innerHTML = '';
+  allFileResults.forEach(r => addFileChip(r.name));
+}
+
+// Remove a single file from the loaded list
+function removeFile(fileName) {
+  const idx = allFileResults.findIndex(r => r.name === fileName);
+  if (idx === -1) return;
+
+  allFileResults.splice(idx, 1);
+  renderFileChips();
+
+  if (allFileResults.length === 0) {
+    clearAll();
+    showToast(`🗑️ Removed "${fileName}"`, 'warn');
+    return;
+  }
+
+  // If active format filter no longer has any files, reset it to 'ALL'
+  if (activeFormatFilter !== 'ALL') {
+    const hasActiveFormat = allFileResults.some(r => r.formatLabel === activeFormatFilter);
+    if (!hasActiveFormat) {
+      activeFormatFilter = 'ALL';
+    }
+  }
+
+  renderSummaryTable();
+  showToast(`🗑️ Removed "${fileName}"`, 'success');
+}
+
+// ─────────────────────────────────────────────
 // Handle file upload
 // ─────────────────────────────────────────────
 async function handleFiles(files) {
@@ -511,13 +551,14 @@ async function handleFiles(files) {
     try {
       const result = await processFile(file);
       newResults.push(result);
-      addFileChip(file.name);
     } catch (e) {
       errors.push({ name: file.name, msg: e.message });
     }
   }
 
   allFileResults.push(...newResults);
+
+  renderFileChips();
 
   renderSummaryTable();
 
@@ -596,6 +637,18 @@ uploadZone.addEventListener('drop', e => {
   e.preventDefault();
   uploadZone.classList.remove('drag-over');
   handleFiles(e.dataTransfer.files);
+});
+
+// Event delegation for table row delete button
+summarySection.addEventListener('click', e => {
+  const btn = e.target.closest('.btn-delete-file');
+  if (btn) {
+    e.stopPropagation();
+    const fileName = btn.dataset.filename;
+    if (fileName) {
+      removeFile(fileName);
+    }
+  }
 });
 
 clearBtn.addEventListener('click', clearAll);
