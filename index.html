@@ -54,6 +54,131 @@
   <!-- ══ MAIN ══ -->
   <main class="app-main" role="main">
 
+    <!-- ═══ EXCHANGE API BUTTONS (NSE / BSE) ═══ -->
+    <section class="exchange-section" aria-label="Exchange API Selection">
+      <div class="exchange-card">
+        <div class="exchange-buttons-row">
+          <button type="button" id="btnNse" class="btn-exchange" data-exchange="NSE" title="Load NSE Option Chain data">
+            <span class="exchange-icon">📈</span>
+            <div class="exchange-info">
+              <span class="exchange-title">NSE</span>
+              <span class="exchange-sub">NIFTY Option Chain</span>
+            </div>
+            <span class="exchange-badge">API</span>
+          </button>
+          
+          <button type="button" id="btnBse" class="btn-exchange" data-exchange="BSE" title="Load BSE Option Chain data">
+            <span class="exchange-icon">🏛️</span>
+            <div class="exchange-info">
+              <span class="exchange-title">BSE</span>
+              <span class="exchange-sub">SENSEX Option Chain</span>
+            </div>
+            <span class="exchange-badge">API</span>
+          </button>
+        </div>
+
+        <!-- ═══ DYNAMIC EXCHANGE FILTERS PANEL (Symbol & Expiry Dropdowns) ═══ -->
+        <div id="exchangeFiltersPanel" class="exchange-filters-panel" style="display:none">
+          <div class="filters-header">
+            <div class="filters-header-left">
+              <span class="filter-step-icon">⚡</span>
+              <span id="filtersHeading" class="filters-heading">NSE Option Chain Filters</span>
+              <span id="apiStatusBadge" class="api-status-badge"></span>
+            </div>
+            <div class="filters-header-right">
+              <button type="button" id="btnClearExchangeData" class="btn-date-action" title="Clear all calculated totals for this exchange">Clear Table</button>
+            </div>
+          </div>
+
+          <!-- Filter Controls Grid -->
+          <div class="filters-controls-grid">
+            <!-- View Options Contracts for / Instrument Type -->
+            <div class="filter-group" id="indexGroup">
+              <label for="indexSelect" class="filter-label" id="indexSelectLabel">
+                View Options Contracts for:
+              </label>
+              <div class="select-wrapper">
+                <select id="indexSelect" class="filter-select" aria-label="View Options Contracts for">
+                  <option value="">Select</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- OR Divider 1 -->
+            <div class="filter-or-divider" id="dividerOr1" aria-hidden="true">OR</div>
+
+            <!-- Select Symbol / Underlying Asset -->
+            <div class="filter-group" id="symbolGroup">
+              <label for="symbolSelect" class="filter-label" id="symbolSelectLabel">
+                Select Symbol:
+              </label>
+              <div class="select-wrapper">
+                <select id="symbolSelect" class="filter-select" aria-label="Select Symbol">
+                  <option value="">Select</option>
+                </select>
+                <div class="select-loader" id="symbolLoader" style="display:none"></div>
+              </div>
+            </div>
+
+            <!-- Expiry Date (Multi-Select with checkboxes) -->
+            <div class="filter-group multiselect-group" id="expiryGroup">
+              <label class="filter-label" id="expiryLabel">
+                Expiry Date:
+              </label>
+              <div class="select-wrapper multiselect-wrapper" id="expiryMultiselectWrapper">
+                <button type="button" id="expiryMultiBtn" class="filter-select multiselect-btn" aria-haspopup="listbox" aria-expanded="false" disabled>
+                  <span id="expiryMultiText">Select Expiry Date</span>
+                  <span class="multiselect-badge" id="expiryMultiBadge" style="display:none">0</span>
+                </button>
+                <div class="multiselect-dropdown" id="expiryDropdown" style="display:none" role="listbox">
+                  <div class="multiselect-actions">
+                    <button type="button" class="btn-ms-action" id="btnSelectAllExpiries">Select All</button>
+                    <span class="ms-action-sep">·</span>
+                    <button type="button" class="btn-ms-action" id="btnClearExpiries">Clear</button>
+                  </div>
+                  <div class="multiselect-list" id="expiryCheckboxesList">
+                    <!-- Populated dynamically with checkboxes -->
+                  </div>
+                </div>
+                <div class="select-loader" id="expiryLoader" style="display:none"></div>
+              </div>
+            </div>
+
+            <!-- OR Divider 2 -->
+            <div class="filter-or-divider" id="dividerOr2" aria-hidden="true">OR</div>
+
+            <!-- Strike Price Filter -->
+            <div class="filter-group" id="strikeGroup">
+              <label for="strikeSelect" class="filter-label" id="strikeSelectLabel">
+                Strike Price:
+              </label>
+              <div class="select-wrapper">
+                <select id="strikeSelect" class="filter-select" aria-label="Strike Price" disabled>
+                  <option value="">Select</option>
+                </select>
+                <div class="select-loader" id="strikeLoader" style="display:none"></div>
+              </div>
+            </div>
+
+            <!-- Step 3: Fetch Totals Action Button -->
+            <div class="filter-group filter-action-group">
+              <label class="filter-label">&nbsp;</label>
+              <button type="button" id="btnFetchTotals" class="btn-fetch-totals" disabled title="Fetch Option Chain Data and Calculate Totals">
+                <span class="fetch-btn-icon">📊</span>
+                <span id="btnFetchText">Fetch Totals</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Progress / Status Indicator -->
+          <div id="filterStatusMsg" class="filter-status-msg" style="display:none">
+            <div class="spinner-small" id="filterStatusSpinner" style="display:none"></div>
+            <span id="filterStatusText"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Upload Zone -->
     <section class="upload-section" aria-label="File Upload">
       <div class="upload-zone" id="uploadZone" role="button" tabindex="0"
@@ -109,6 +234,7 @@
     </div>
   </div>
 
+  <script src="exchange-seed.js"></script>
   <script src="app.js"></script>
 
   <!-- ══ PWA: Service Worker Registration ══ -->

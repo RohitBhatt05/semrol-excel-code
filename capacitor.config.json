@@ -1,5 +1,10 @@
 {
   "appId": "com.scanner.optionchain",
   "appName": "MPCUKBJKR",
-  "webDir": "www"
+  "webDir": "www",
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": true
+    }
+  }
 }
