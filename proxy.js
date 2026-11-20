@@ -15,7 +15,7 @@ const server = http.createServer(async (req, res) => {
   }
 
   const reqUrl = new URL(req.url, `http://localhost:${PORT}`);
-  const target = reqUrl.searchParams.get('url');
+  let target = reqUrl.searchParams.get('url');
 
   if (!target) {
     res.writeHead(400, { 'Content-Type': 'application/json' });
@@ -23,12 +23,21 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // Ensure query parameters with spaces are cleanly encoded for HTTP fetch
+  target = target.replace(/ /g, '%20');
+  if (target.includes('DerivOptionChain_IV')) {
+    target = target.replace(/\+/g, '%20');
+  }
+
   try {
     const response = await fetch(target, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'application/json, text/plain, */*',
-        'Referer': target.includes('nseindia.in') ? 'https://www.nseindia.in/' : 'https://www.bseindia.com/'
+        'Referer': target.includes('nseindia.in')
+          ? 'https://www.nseindia.in/option-chain'
+          : 'https://www.bseindia.com/markets/Derivatives/DeriOptionChain.aspx',
+        'Origin': target.includes('nseindia.in') ? 'https://www.nseindia.in' : 'https://www.bseindia.com'
       }
     });
 

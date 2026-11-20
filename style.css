@@ -1672,6 +1672,19 @@ td.td-date {
   line-height: 1.25;
 }
 
+.date-sub-strike {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 600;
+  color: #4338ca;
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  border-radius: 4px;
+  padding: 1px 5px;
+  margin-top: 3px;
+  line-height: 1.2;
+}
+
 /* Data cells */
 .summary-table tbody td {
   padding: 5px 5px;
@@ -1683,6 +1696,48 @@ td.td-date {
   text-align: right;
   color: #1e293b;
   min-width: 66px;
+}
+
+/* Month group boundary divider between consecutive months in totals table */
+.summary-table tbody tr.month-boundary-row td {
+  border-top: 2px solid #3b82f6 !important;
+}
+
+/* Month Section Header Row in Summary Table */
+.summary-table tbody tr.month-header-row td.month-header-cell {
+  background: #0f172a !important;
+  color: #93c5fd !important;
+  padding: 5px 8px !important;
+  text-align: left !important;
+  border-top: 2px solid #3b82f6 !important;
+  border-bottom: 1px solid #1e293b !important;
+}
+
+.month-header-content {
+  position: sticky;
+  left: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #1e293b;
+  padding: 2px 10px;
+  border-radius: 4px;
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  color: #bfdbfe;
+  font-family: 'Inter', sans-serif;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.month-header-icon {
+  font-size: 11px;
+}
+
+.month-header-title {
+  text-transform: uppercase;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  color: #60a5fa;
 }
 
 /* CALLS side cells: Signature NSE light-cream/pale yellow tint */

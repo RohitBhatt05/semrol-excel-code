@@ -160,6 +160,134 @@ function capitalize(s) {
 }
 
 // ─────────────────────────────────────────────
+// Chronological Date Parsing & Sorting Helpers
+// ─────────────────────────────────────────────
+const MONTH_INDEX_MAP = {
+  jan: 0, january: 0,
+  feb: 1, february: 1,
+  mar: 2, march: 2,
+  apr: 3, april: 3,
+  may: 4,
+  jun: 5, june: 5,
+  jul: 6, july: 6,
+  aug: 7, august: 7,
+  sep: 8, sept: 8, september: 8,
+  oct: 9, october: 9,
+  nov: 10, november: 10,
+  dec: 11, december: 11
+};
+
+function parseRecordTimestamp(r) {
+  if (!r) return 0;
+  const candidates = [r.rawExpiry, r.date, r.name].filter(Boolean);
+
+  for (const raw of candidates) {
+    const s = String(raw).trim();
+
+    // 1. "26 Nov 2026", "26-Nov-2026", "03 Dec 2026", "26-NOV-2026"
+    const m1 = s.match(/(?:^|[^0-9A-Za-z])(\d{1,2})[-_\s]+([A-Za-z]{3,9})[-_\s]+(\d{4})(?:[^0-9A-Za-z]|$)/);
+    if (m1) {
+      const day = parseInt(m1[1], 10);
+      const mStr = m1[2].toLowerCase();
+      const year = parseInt(m1[3], 10);
+      if (MONTH_INDEX_MAP[mStr] !== undefined && day >= 1 && day <= 31) {
+        return new Date(year, MONTH_INDEX_MAP[mStr], day).getTime();
+      }
+    }
+
+    // 2. YYYY-MM-DD or YYYY_MM_DD
+    const m2 = s.match(/(?:^|[^0-9])(\d{4})[-_/](\d{1,2})[-_/](\d{1,2})(?:[^0-9]|$)/);
+    if (m2) {
+      const year = parseInt(m2[1], 10);
+      const month = parseInt(m2[2], 10) - 1;
+      const day = parseInt(m2[3], 10);
+      if (month >= 0 && month <= 11 && day >= 1 && day <= 31) {
+        return new Date(year, month, day).getTime();
+      }
+    }
+
+    // 3. DD-MM-YYYY or DD/MM/YYYY
+    const m3 = s.match(/(?:^|[^0-9])(\d{1,2})[-_/](\d{1,2})[-_/](\d{4})(?:[^0-9]|$)/);
+    if (m3) {
+      const day = parseInt(m3[1], 10);
+      const month = parseInt(m3[2], 10) - 1;
+      const year = parseInt(m3[3], 10);
+      if (month >= 0 && month <= 11 && day >= 1 && day <= 31 && year >= 1990 && year <= 2099) {
+        return new Date(year, month, day).getTime();
+      }
+    }
+
+    // 4. DDMMYYYY (8 digits)
+    const m4 = s.match(/(?:^|[^0-9])(\d{2})(\d{2})(\d{4})(?:[^0-9]|$)/);
+    if (m4) {
+      const day = parseInt(m4[1], 10);
+      const month = parseInt(m4[2], 10) - 1;
+      const year = parseInt(m4[3], 10);
+      if (month >= 0 && month <= 11 && day >= 1 && day <= 31 && year >= 1990 && year <= 2099) {
+        return new Date(year, month, day).getTime();
+      }
+    }
+  }
+
+  return 0;
+}
+
+function getRecordMonthKey(r) {
+  const ts = parseRecordTimestamp(r);
+  if (!ts) return '';
+  const d = new Date(ts);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
+
+const MONTH_NAMES_FULL = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+function getRecordMonthTitle(r) {
+  const ts = parseRecordTimestamp(r);
+  if (!ts) return '';
+  const d = new Date(ts);
+  return `${MONTH_NAMES_FULL[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+function formatDisplayDate(r) {
+  if (!r) return '—';
+  const raw = typeof r === 'string' ? r : (r.rawExpiry || r.date || r.name || '');
+  const s = String(raw).trim();
+
+  // 1. Match DD-Mon-YYYY or DD Mon YYYY (e.g. "26 Nov 2026", "03-Dec-2026")
+  const m1 = s.match(/(?:^|[^0-9A-Za-z])(\d{1,2})[-_\s]+([A-Za-z]{3,9})[-_\s]+(\d{4})(?:[^0-9A-Za-z]|$)/);
+  if (m1) {
+    const day = String(parseInt(m1[1], 10)).padStart(2, '0');
+    const mon = m1[2].slice(0, 3);
+    const monCap = mon.charAt(0).toUpperCase() + mon.slice(1).toLowerCase();
+    const year = m1[3];
+    return `${day}-${monCap}-${year}`;
+  }
+
+  // 2. YYYY-MM-DD
+  const m2 = s.match(/(?:^|[^0-9])(\d{4})[-_/](\d{1,2})[-_/](\d{1,2})(?:[^0-9]|$)/);
+  if (m2) {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const day = String(parseInt(m2[3], 10)).padStart(2, '0');
+    const mon = months[parseInt(m2[2], 10) - 1] || m2[2];
+    const year = m2[1];
+    return `${day}-${mon}-${year}`;
+  }
+
+  // 3. DD-MM-YYYY
+  const m3 = s.match(/(?:^|[^0-9])(\d{1,2})[-_/](\d{1,2})[-_/](\d{4})(?:[^0-9]|$)/);
+  if (m3) {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const day = String(parseInt(m3[1], 10)).padStart(2, '0');
+    const mon = months[parseInt(m3[2], 10) - 1] || m3[2];
+    const year = m3[3];
+    return `${day}-${mon}-${year}`;
+  }
+
+  const fallback = extractDate(s);
+  return (fallback && fallback !== '—') ? fallback : s;
+}
+
+// ─────────────────────────────────────────────
 // Safe numeric parser
 // ─────────────────────────────────────────────
 function parseNum(raw) {
@@ -395,7 +523,29 @@ function renderGroupTable(group) {
       ${putsCols.map(p => `<th class="th-puts">${escHtml(p.key)}</th>`).join('')}
     </tr>`;
 
-  const dataRows = files.map((r, i) => {
+  const totalTableCols = callsCols.length + putsCols.length + 3;
+  let lastMonthKey = '';
+  const rowsHtml = [];
+
+  files.forEach((r, i) => {
+    const currentMonthKey = getRecordMonthKey(r);
+    const currentMonthTitle = getRecordMonthTitle(r);
+    const isNewMonth = currentMonthKey && currentMonthKey !== lastMonthKey;
+
+    if (isNewMonth && currentMonthTitle) {
+      lastMonthKey = currentMonthKey;
+      rowsHtml.push(`
+        <tr class="month-header-row">
+          <td colspan="${totalTableCols}" class="month-header-cell">
+            <div class="month-header-content">
+              <span class="month-header-icon">📅</span>
+              <span class="month-header-title">${escHtml(currentMonthTitle)}</span>
+            </div>
+          </td>
+        </tr>
+      `);
+    }
+
     const callsCells = callsCols.map(col => {
       const v = r.calls[col.key] || 0;
       const isChng = /ch(?:an)?g/i.test(col.key);
@@ -420,11 +570,16 @@ function renderGroupTable(group) {
       return `<td class="${cls}">${fmtCompact(v)}</td>`;
     }).join('');
 
-    return `
+    const displayDate = formatDisplayDate(r);
+    const isCsvUpload = Boolean(r.name && r.name.toLowerCase().endsWith('.csv'));
+    const strikeTag = r.filterStrike ? `Strike ${r.filterStrike}` : '';
+
+    rowsHtml.push(`
       <tr class="data-row" data-index="${i}">
-        <td class="td-date" title="${escHtml(r.name)}">
-          <div class="date-label">${escHtml(r.date)}</div>
-          <div class="date-file">${escHtml(r.name)}</div>
+        <td class="td-date" title="${escHtml(r.name || r.date)}">
+          <div class="date-label">${escHtml(displayDate)}</div>
+          ${strikeTag ? `<div class="date-sub-strike">${escHtml(strikeTag)}</div>` : ''}
+          ${isCsvUpload ? `<div class="date-file">${escHtml(r.name)}</div>` : ''}
         </td>
         ${callsCells}
         <td class="td-strike" title="${r.strikeCount} strikes">${fmtCompact(r.strikeTotal)}</td>
@@ -434,8 +589,11 @@ function renderGroupTable(group) {
             Delete
           </button>
         </td>
-      </tr>`;
-  }).join('');
+      </tr>
+    `);
+  });
+
+  const dataRows = rowsHtml.join('');
 
   const callsTotalCells = callsCols.map(col => {
     const v = grand['calls_' + col.key] || 0;
@@ -534,7 +692,16 @@ function renderSummaryTable() {
 
   const groupList = Object.values(groups);
   groupList.forEach(g => {
-    g.files.sort((a, b) => a.date.localeCompare(b.date));
+    // Chronological order grouped month-wise, ascending by date
+    g.files.sort((a, b) => {
+      const tA = parseRecordTimestamp(a);
+      const tB = parseRecordTimestamp(b);
+      if (tA !== tB) return tA - tB;
+      const sA = Number(a.filterStrike) || 0;
+      const sB = Number(b.filterStrike) || 0;
+      if (sA !== sB) return sA - sB;
+      return (a.name || '').localeCompare(b.name || '');
+    });
   });
 
   let html = '';
@@ -678,6 +845,17 @@ async function handleFiles(files) {
   if (btnBse) btnBse.classList.remove('active');
   if (exchangeFiltersPanel) exchangeFiltersPanel.style.display = 'none';
 
+  // 1. Clear any existing table data & previous calculations first
+  allFileResults = [];
+  if (exchangeState.NSE) exchangeState.NSE.results = [];
+  if (exchangeState.BSE) exchangeState.BSE.results = [];
+  activeFormatFilter = 'ALL';
+  if (fileChips) fileChips.innerHTML = '';
+  if (statsBar) {
+    statsBar.innerHTML = '';
+    statsBar.style.display = 'none';
+  }
+
   summarySection.innerHTML = `
     <div style="text-align:center;padding:56px 24px">
       <div class="spinner" style="width:36px;height:36px;margin:0 auto 16px"></div>
@@ -688,10 +866,6 @@ async function handleFiles(files) {
   const errors = [];
 
   for (const file of csvFiles) {
-    if (allFileResults.find(r => r.name === file.name)) {
-      showToast(`⚠️ "${file.name}" already loaded.`, 'warn');
-      continue;
-    }
     try {
       const result = await processFile(file);
       newResults.push(result);
@@ -700,9 +874,11 @@ async function handleFiles(files) {
     }
   }
 
-  allFileResults.push(...newResults);
+  // Replace results with newly calculated file results
+  allFileResults = newResults;
   renderFileChips();
   renderSummaryTable();
+  updateBottomBar();
 
   if (errors.length > 0) {
     errors.forEach(e => {
@@ -722,20 +898,19 @@ async function handleFiles(files) {
 // Clear all
 // ─────────────────────────────────────────────
 function clearAll() {
-  if (activeExchange) {
-    clearExchangeData(activeExchange);
-  } else {
-    allFileResults = [];
-    activeFormatFilter = 'ALL';
-    fileChips.innerHTML = '';
-    fileInput.value = '';
-    if (statsBar) {
-      statsBar.innerHTML = '';
-      statsBar.style.display = 'none';
-    }
-    showEmpty();
-    updateBottomBar();
+  if (exchangeState.NSE) exchangeState.NSE.results = [];
+  if (exchangeState.BSE) exchangeState.BSE.results = [];
+  allFileResults = [];
+  activeFormatFilter = 'ALL';
+  if (fileChips) fileChips.innerHTML = '';
+  if (fileInput) fileInput.value = '';
+  if (statsBar) {
+    statsBar.innerHTML = '';
+    statsBar.style.display = 'none';
   }
+  renderSummaryTable();
+  updateBottomBar();
+  showToast('🗑️ Cleared all table data', 'warn');
 }
 
 // ─────────────────────────────────────────────
@@ -939,7 +1114,7 @@ function getSeedRowsForSymbolExpiry(exchange, symbol, expiry) {
 // ─────────────────────────────────────────────
 // Generic Fetch Helper with Local Proxy & Direct Support
 // ─────────────────────────────────────────────
-async function fetchWithProxy(url, timeoutMs = 3000) {
+async function fetchWithProxy(url, timeoutMs = 15000) {
   const isCapacitorNative = typeof Capacitor !== 'undefined' && typeof Capacitor.isNativePlatform === 'function' && Capacitor.isNativePlatform();
 
   // 1. In native Capacitor app (Android APK): direct fetch works natively without CORS (CapacitorHttp)
@@ -958,8 +1133,7 @@ async function fetchWithProxy(url, timeoutMs = 3000) {
     }
   }
 
-  // 2. In browser: use local CORS proxy first (runs on http://localhost:3001 via `npm run proxy`)
-  // Calling the proxy first avoids the browser throwing a red CORS error against nseindia.in
+  // 2. In browser: use local CORS proxy (runs on http://localhost:3001 via `node proxy.js`)
   try {
     const localProxyUrl = `http://localhost:3001/proxy?url=${encodeURIComponent(url)}`;
     const ctrl = new AbortController();
@@ -971,23 +1145,7 @@ async function fetchWithProxy(url, timeoutMs = 3000) {
       return { ok: true, data, isLive: true };
     }
   } catch (e) {
-    // Local proxy not running
-  }
-
-  // 3. Fallback: direct fetch attempt (for browsers with CORS extension or disabled web security)
-  if (!isCapacitorNative) {
-    try {
-      const ctrl = new AbortController();
-      const tid = setTimeout(() => ctrl.abort(), 1200);
-      const res = await fetch(url, { signal: ctrl.signal, headers: { Accept: 'application/json, text/plain, */*' } });
-      clearTimeout(tid);
-      if (res.ok) {
-        const data = await res.json();
-        return { ok: true, data, isLive: true };
-      }
-    } catch (e) {
-      // Direct fetch blocked by browser CORS
-    }
+    // Local proxy timed out or not running
   }
 
   return { ok: false, data: null, isLive: false };
@@ -1016,7 +1174,7 @@ async function fetchSymbols(exchange) {
   let symbols = [];
   let isLive = false;
 
-  const res = await fetchWithProxy(state.masterQuoteApi, 3000);
+  const res = await fetchWithProxy(state.masterQuoteApi, 15000);
   if (res.ok && res.data) {
     const d = res.data;
     if (Array.isArray(d)) {
@@ -1110,7 +1268,7 @@ async function fetchBseUnderlyingAssets(productType = null) {
   let isLive = false;
 
   const url = `https://api.bseindia.com/BseIndiaAPI/api/ddlUnderlyingAsset/w?ProductType=${encodeURIComponent(pType)}&scrip_cd=0`;
-  const res = await fetchWithProxy(url, 3000);
+  const res = await fetchWithProxy(url, 15000);
   if (res.ok && res.data) {
     const d = res.data;
     const table = d.Table || d.table || [];
@@ -1184,6 +1342,18 @@ async function fetchBseExpiryDates(scrip_cd, assetCode) {
     return;
   }
 
+  // BANKEX: Do not call ddlExpiry_IV; directly setup expiries and wait for user to click Fetch Totals
+  if (assetCode === 'BANKEX' || scrip_cd === 12) {
+    const expiries = ['26 Nov 2026', '31 Dec 2026', '28 Jan 2027'];
+    state.expiries = expiries;
+    state.selectedExpiries = [expiries[0]];
+    if (expiryLoader) expiryLoader.style.display = 'none';
+    if (btnFetchTotals) btnFetchTotals.disabled = false;
+    populateExpiryDropdown('BSE');
+    hideFilterStatus();
+    return;
+  }
+
   if (expiryMultiBtn) {
     expiryMultiBtn.disabled = true;
     if (expiryMultiText) expiryMultiText.textContent = 'Loading BSE expiry dates…';
@@ -1206,6 +1376,7 @@ async function fetchBseExpiryDates(scrip_cd, assetCode) {
     populateExpiryDropdown('BSE');
     populateStrikeDropdown('BSE');
     if (expiryLoader) expiryLoader.style.display = 'none';
+    if (btnFetchTotals) btnFetchTotals.disabled = false;
     hideFilterStatus();
     return;
   }
@@ -1214,7 +1385,7 @@ async function fetchBseExpiryDates(scrip_cd, assetCode) {
   let strikes = [];
 
   const url = `${state.expiryApi}?ProductType=${encodeURIComponent(pType)}&scrip_cd=${encodeURIComponent(scrip_cd)}`;
-  const res = await fetchWithProxy(url, 3000);
+  const res = await fetchWithProxy(url, 15000);
 
   if (res.ok && res.data) {
     const d = res.data;
@@ -1232,7 +1403,7 @@ async function fetchBseExpiryDates(scrip_cd, assetCode) {
 
   // Fallback if offline
   if (expiries.length === 0) {
-    expiries = ['19 Nov 2026', '26 Nov 2026', '03 Dec 2026', '10 Dec 2026', '17 Dec 2026', '24 Dec 2026', '31 Dec 2026'];
+    expiries = ['26 Nov 2026', '31 Dec 2026', '28 Jan 2027'];
   }
   if (strikes.length === 0) {
     const seedRows = getSeedRowsForSymbolExpiry('BSE', assetCode, expiries[0]);
@@ -1250,6 +1421,7 @@ async function fetchBseExpiryDates(scrip_cd, assetCode) {
   state.strikeCache[cacheKey] = strikes;
 
   if (expiryLoader) expiryLoader.style.display = 'none';
+  if (btnFetchTotals) btnFetchTotals.disabled = false;
   populateExpiryDropdown('BSE');
   populateStrikeDropdown('BSE');
   hideFilterStatus();
@@ -1301,7 +1473,7 @@ async function fetchExpiryDates(exchange, symbol) {
 
   if (exchange === 'NSE') {
     const url = `${state.contractInfoApi}?symbol=${encodeURIComponent(symbol)}`;
-    const res = await fetchWithProxy(url, 3000);
+    const res = await fetchWithProxy(url, 15000);
 
     if (res.ok && res.data) {
       const d = res.data;
@@ -1468,7 +1640,7 @@ async function fetchOptionChainAndCalculate(exchange, symbol, expiry, strike = n
     const coreIndices = ['NIFTY', 'BANKNIFTY', 'FINNIFTY', 'MIDCPNIFTY', 'NIFTYNXT50', 'NIFTYFPI'];
     const type = coreIndices.includes(symbol.toUpperCase()) ? 'Indices' : 'Equities';
     const url = `${state.optionChainApi}?type=${type}&symbol=${encodeURIComponent(symbol)}&expiry=${encodeURIComponent(expiry)}`;
-    const res = await fetchWithProxy(url, 3000);
+    const res = await fetchWithProxy(url, 15000);
 
     if (res.ok && res.data) {
       const d = res.data;
@@ -1485,8 +1657,9 @@ async function fetchOptionChainAndCalculate(exchange, symbol, expiry, strike = n
     }
   } else if (exchange === 'BSE') {
     const scripCode = state.selectedScripCd || (symbol === 'BANKEX' ? 12 : (symbol === 'SX50' ? 47 : (symbol === 'BSE FOCUSED IT' ? 75 : 1)));
-    const url = `${state.optionChainApi}?Expiry=${encodeURIComponent(expiry)}&scrip_cd=${scripCode}&strprice=0`;
-    const res = await fetchWithProxy(url, 3000);
+    const bseExpiryParam = encodeURIComponent(String(expiry).trim());
+    const url = `${state.optionChainApi}?Expiry=${bseExpiryParam}&scrip_cd=${scripCode}&strprice=0`;
+    const res = await fetchWithProxy(url, 15000);
 
     if (res.ok && res.data) {
       const d = res.data;
@@ -1494,6 +1667,17 @@ async function fetchOptionChainAndCalculate(exchange, symbol, expiry, strike = n
       if (Array.isArray(records) && records.length > 0) {
         rows = convertBseApiToRows(records);
         isLive = true;
+
+        // Populate strikes dropdown from live option chain records if not already populated
+        if (!state.strikes || state.strikes.length === 0) {
+          const strikesFromChain = records
+            .map(x => String(x.Strike_Price || x.strikePrice || x.strike || '').replace(/,/g, '').trim())
+            .filter(Boolean);
+          if (strikesFromChain.length > 0) {
+            state.strikes = Array.from(new Set(strikesFromChain)).sort((a, b) => Number(a) - Number(b));
+            populateStrikeDropdown('BSE');
+          }
+        }
       }
     }
 
@@ -1510,10 +1694,11 @@ async function fetchOptionChainAndCalculate(exchange, symbol, expiry, strike = n
     const structure = detectStructure(rows);
     const { calls, puts, strikes, strikeCount, strikeTotal } = calcTotals(rows, structure, strike);
 
-    const rowName = `${exchange} ${symbol} - ${friendlyDate}${strike ? ` (Strike ${strike})` : ''}`;
+    const cleanDisplayDate = formatDisplayDate(expiry);
+    const rowName = `${exchange} ${symbol} - ${cleanDisplayDate}${strike ? ` (Strike ${strike})` : ''}`;
     const resultItem = {
       name: rowName,
-      date: `${symbol} · ${friendlyDate}${strikeTag}`,
+      date: cleanDisplayDate,
       formatLabel: exchange === 'NSE' ? 'NIFTY' : 'SENSEX',
       structure,
       strikeCount,
@@ -1587,10 +1772,151 @@ async function handleFetchTotals() {
 }
 
 // ─────────────────────────────────────────────
+// Refresh & Load Filter Values for Exchange
+// ─────────────────────────────────────────────
+async function refreshExchangeFilters(exchange) {
+  const state = exchangeState[exchange];
+  if (!state) return;
+
+  // Clear selections so previous exchange's expiries/strikes never leak
+  state.selectedExpiries = [];
+  state.selectedStrike = '';
+
+  if (exchange === 'NSE') {
+    state.selectedIndex = 'NIFTY';
+    state.selectedSymbol = '';
+    state.activeContract = 'NIFTY';
+
+    // 1. Immediately populate View Options Contracts for (indexSelect) with NIFTY selected
+    if (indexSelect) {
+      const indices = state.indices || ['NIFTY', 'BANKNIFTY', 'FINNIFTY', 'MIDCPNIFTY', 'NIFTYNXT50', 'NIFTYFPI'];
+      indexSelect.innerHTML = indices.map(idx =>
+        `<option value="${escHtml(idx)}"${idx === 'NIFTY' ? ' selected' : ''}>${escHtml(idx)}</option>`
+      ).join('');
+      indexSelect.value = 'NIFTY';
+      indexSelect.disabled = false;
+    }
+
+    // 2. Immediately reset Select Symbol (symbolSelect) to Select
+    if (symbolSelect) {
+      let html = `<option value="">Select</option>`;
+      if (state.symbols && state.symbols.length > 0) {
+        html += state.symbols.map(s => `<option value="${escHtml(s)}">${escHtml(s)}</option>`).join('');
+      }
+      symbolSelect.innerHTML = html;
+      symbolSelect.value = '';
+      symbolSelect.disabled = false;
+    }
+
+    // 3. Reset expiry and strike controls to loading state
+    if (expiryMultiBtn) {
+      expiryMultiBtn.disabled = true;
+      if (expiryMultiText) expiryMultiText.textContent = 'Loading expiry dates…';
+      if (expiryMultiBadge) expiryMultiBadge.style.display = 'none';
+    }
+    if (expiryCheckboxesList) expiryCheckboxesList.innerHTML = '';
+    if (strikeSelect) {
+      strikeSelect.innerHTML = '<option value="">Select</option>';
+      strikeSelect.disabled = true;
+    }
+    if (btnFetchTotals) btnFetchTotals.disabled = true;
+
+    // 4. Background fetch symbols if not loaded yet
+    if (!state.loadedSymbols) {
+      fetchSymbols('NSE').catch(() => {});
+    }
+
+    // 5. Fetch fresh expiry dates & strikes for NIFTY
+    await fetchExpiryDates('NSE', 'NIFTY');
+
+  } else if (exchange === 'BSE') {
+    state.selectedInstrument = 'IO';
+    state.selectedScripCd = 1;
+    state.selectedAssetCode = 'SENSEX';
+    state.activeContract = 'SENSEX';
+
+    // 1. Immediately populate Instrument/Spread Type (indexSelect) with Index Option selected
+    if (indexSelect) {
+      const types = state.instrumentTypes || [
+        { code: 'IO', name: 'Index Option' },
+        { code: 'IF', name: 'Index Futures' },
+        { code: 'EF', name: 'Equity Futures' },
+        { code: 'EO', name: 'Equity Option' },
+        { code: 'IF-Spread', name: 'IF-Spread' },
+        { code: 'EF-Spread', name: 'EF-Spread' },
+        { code: 'POC(IO)', name: 'POC(IO)' },
+        { code: 'POC(SO)', name: 'POC(SO)' }
+      ];
+      indexSelect.innerHTML = types.map(t =>
+        `<option value="${escHtml(t.code)}"${t.code === 'IO' ? ' selected' : ''}>${escHtml(t.name)}</option>`
+      ).join('');
+      indexSelect.value = 'IO';
+      indexSelect.disabled = false;
+    }
+
+    // 2. Immediately populate Underlying Asset (symbolSelect) with SENSEX selected
+    if (symbolSelect) {
+      const defaultAssets = (state.underlyingAssets && state.underlyingAssets.length > 0)
+        ? state.underlyingAssets
+        : [
+            { code: 'SENSEX', scrip_cd: 1, productType: 'IO' },
+            { code: 'BANKEX', scrip_cd: 12, productType: 'IO' },
+            { code: 'SX50', scrip_cd: 47, productType: 'IO' },
+            { code: 'BSE FOCUSED IT', scrip_cd: 75, productType: 'IO' }
+          ];
+      let html = `<option value="">Select Asset</option>`;
+      html += defaultAssets.map(a =>
+        `<option value="${a.scrip_cd}" data-code="${escHtml(a.code)}"${a.scrip_cd === 1 ? ' selected' : ''}>${escHtml(a.code)}</option>`
+      ).join('');
+      symbolSelect.innerHTML = html;
+      symbolSelect.value = '1';
+      symbolSelect.disabled = false;
+    }
+
+    // 3. Reset expiry and strike controls to loading state
+    if (expiryMultiBtn) {
+      expiryMultiBtn.disabled = true;
+      if (expiryMultiText) expiryMultiText.textContent = 'Loading BSE expiry dates…';
+      if (expiryMultiBadge) expiryMultiBadge.style.display = 'none';
+    }
+    if (expiryCheckboxesList) expiryCheckboxesList.innerHTML = '';
+    if (strikeSelect) {
+      strikeSelect.innerHTML = '<option value="">Select</option>';
+      strikeSelect.disabled = true;
+    }
+    if (btnFetchTotals) btnFetchTotals.disabled = true;
+
+    // 4. Background refresh underlying assets list if needed
+    if (!state.loadedSymbols) {
+      fetchBseUnderlyingAssets('IO').catch(() => {});
+    }
+
+    // 5. Fetch fresh expiry dates & strikes for SENSEX (scrip_cd: 1)
+    await fetchBseExpiryDates(1, 'SENSEX');
+  }
+}
+
+// ─────────────────────────────────────────────
 // Switch Active Exchange (NSE / BSE)
 // ─────────────────────────────────────────────
 function switchExchange(exchange) {
+  // 1. Clear all previously displayed table data so results from previous exchange are never carried forward
+  if (exchangeState.NSE) exchangeState.NSE.results = [];
+  if (exchangeState.BSE) exchangeState.BSE.results = [];
+  allFileResults = [];
+  activeFormatFilter = 'ALL';
+  if (fileChips) fileChips.innerHTML = '';
+  if (fileInput) fileInput.value = '';
+  if (statsBar) {
+    statsBar.innerHTML = '';
+    statsBar.style.display = 'none';
+  }
+
   activeExchange = exchange;
+
+  // Immediately render empty table for the newly active exchange
+  renderSummaryTable();
+  updateBottomBar();
 
   if (btnNse && btnBse) {
     if (exchange === 'NSE') {
@@ -1614,30 +1940,16 @@ function switchExchange(exchange) {
     if (dividerOr1) dividerOr1.style.display = 'inline-flex';
     if (dividerOr2) dividerOr2.style.display = 'inline-flex';
     if (strikeSelectLabel) strikeSelectLabel.textContent = 'Strike Price:';
-
-    updateStatusBadge('NSE');
-    fetchSymbols('NSE');
   } else if (exchange === 'BSE') {
     if (indexSelectLabel) indexSelectLabel.textContent = 'Instrument/Spread Type:';
     if (symbolSelectLabel) symbolSelectLabel.textContent = 'Underlying Asset:';
     if (dividerOr1) dividerOr1.style.display = 'none';
     if (dividerOr2) dividerOr2.style.display = 'inline-flex';
     if (strikeSelectLabel) strikeSelectLabel.textContent = 'Strike Price:';
-
-    if (indexSelect) {
-      const types = exchangeState.BSE.instrumentTypes || [];
-      indexSelect.innerHTML = types.map(t =>
-        `<option value="${escHtml(t.code)}"${t.code === (exchangeState.BSE.selectedInstrument || 'IO') ? ' selected' : ''}>${escHtml(t.name)}</option>`
-      ).join('');
-      indexSelect.value = exchangeState.BSE.selectedInstrument || 'IO';
-    }
-
-    updateStatusBadge('BSE');
-    fetchBseUnderlyingAssets();
   }
 
-  renderSummaryTable();
-  updateBottomBar();
+  updateStatusBadge(exchange);
+  refreshExchangeFilters(exchange);
 }
 
 // ─────────────────────────────────────────────
