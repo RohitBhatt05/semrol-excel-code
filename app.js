@@ -1823,7 +1823,7 @@ async function refreshExchangeFilters(exchange) {
 
     // 4. Background fetch symbols if not loaded yet
     if (!state.loadedSymbols) {
-      fetchSymbols('NSE').catch(() => {});
+      fetchSymbols('NSE').catch(() => { });
     }
 
     // 5. Fetch fresh expiry dates & strikes for NIFTY
@@ -1859,11 +1859,11 @@ async function refreshExchangeFilters(exchange) {
       const defaultAssets = (state.underlyingAssets && state.underlyingAssets.length > 0)
         ? state.underlyingAssets
         : [
-            { code: 'SENSEX', scrip_cd: 1, productType: 'IO' },
-            { code: 'BANKEX', scrip_cd: 12, productType: 'IO' },
-            { code: 'SX50', scrip_cd: 47, productType: 'IO' },
-            { code: 'BSE FOCUSED IT', scrip_cd: 75, productType: 'IO' }
-          ];
+          { code: 'SENSEX', scrip_cd: 1, productType: 'IO' },
+          { code: 'BANKEX', scrip_cd: 12, productType: 'IO' },
+          { code: 'SX50', scrip_cd: 47, productType: 'IO' },
+          { code: 'BSE FOCUSED IT', scrip_cd: 75, productType: 'IO' }
+        ];
       let html = `<option value="">Select Asset</option>`;
       html += defaultAssets.map(a =>
         `<option value="${a.scrip_cd}" data-code="${escHtml(a.code)}"${a.scrip_cd === 1 ? ' selected' : ''}>${escHtml(a.code)}</option>`
@@ -1888,7 +1888,7 @@ async function refreshExchangeFilters(exchange) {
 
     // 4. Background refresh underlying assets list if needed
     if (!state.loadedSymbols) {
-      fetchBseUnderlyingAssets('IO').catch(() => {});
+      fetchBseUnderlyingAssets('IO').catch(() => { });
     }
 
     // 5. Fetch fresh expiry dates & strikes for SENSEX (scrip_cd: 1)
