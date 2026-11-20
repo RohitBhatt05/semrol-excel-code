@@ -13,6 +13,8 @@
 
   <!-- iOS Safari PWA support -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
+  <!-- <meta name="apple-mobile-web-app-capable" content="yes" /> -->
+
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="MPCUKBJKR" />
   <link rel="apple-touch-icon" href="icon-192.png" />
@@ -66,7 +68,7 @@
             </div>
             <span class="exchange-badge">API</span>
           </button>
-          
+
           <button type="button" id="btnBse" class="btn-exchange" data-exchange="BSE" title="Load BSE Option Chain data">
             <span class="exchange-icon">🏛️</span>
             <div class="exchange-info">
@@ -86,7 +88,8 @@
               <span id="apiStatusBadge" class="api-status-badge"></span>
             </div>
             <div class="filters-header-right">
-              <button type="button" id="btnClearExchangeData" class="btn-date-action" title="Clear all calculated totals for this exchange">Clear Table</button>
+              <button type="button" id="btnClearExchangeData" class="btn-date-action"
+                title="Clear all calculated totals for this exchange">Clear Table</button>
             </div>
           </div>
 
@@ -126,7 +129,8 @@
                 Expiry Date:
               </label>
               <div class="select-wrapper multiselect-wrapper" id="expiryMultiselectWrapper">
-                <button type="button" id="expiryMultiBtn" class="filter-select multiselect-btn" aria-haspopup="listbox" aria-expanded="false" disabled>
+                <button type="button" id="expiryMultiBtn" class="filter-select multiselect-btn" aria-haspopup="listbox"
+                  aria-expanded="false" disabled>
                   <span id="expiryMultiText">Select Expiry Date</span>
                   <span class="multiselect-badge" id="expiryMultiBadge" style="display:none">0</span>
                 </button>
@@ -163,7 +167,8 @@
             <!-- Step 3: Fetch Totals Action Button -->
             <div class="filter-group filter-action-group">
               <label class="filter-label">&nbsp;</label>
-              <button type="button" id="btnFetchTotals" class="btn-fetch-totals" disabled title="Fetch Option Chain Data and Calculate Totals">
+              <button type="button" id="btnFetchTotals" class="btn-fetch-totals" disabled
+                title="Fetch Option Chain Data and Calculate Totals">
                 <span class="fetch-btn-icon">📊</span>
                 <span id="btnFetchText">Fetch Totals</span>
               </button>
