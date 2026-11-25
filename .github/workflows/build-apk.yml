@@ -32,7 +32,7 @@ jobs:
         run: |
           npm install
           mkdir -p www
-          cp index.html style.css app.js papaparse.min.js manifest.json icon-192.png icon-512.png www/ || true
+          cp index.html style.css app.js exchange-seed.js papaparse.min.js manifest.json icon-192.png icon-512.png www/ || true
           [ -f user-icon.jpg ] && cp user-icon.jpg www/ || true
           npx cap sync android
 

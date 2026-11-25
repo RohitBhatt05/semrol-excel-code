@@ -1133,21 +1133,31 @@ async function fetchWithProxy(url, timeoutMs = 15000) {
     }
   }
 
-  // 2. In browser: use local CORS proxy (runs on http://localhost:3001 via `node proxy.js`)
-  try {
-    const localProxyUrl = `http://localhost:3001/proxy?url=${encodeURIComponent(url)}`;
-    const ctrl = new AbortController();
-    const tid = setTimeout(() => ctrl.abort(), timeoutMs);
-    const res = await fetch(localProxyUrl, { signal: ctrl.signal });
-    clearTimeout(tid);
-    if (res.ok) {
-      const data = await res.json();
-      return { ok: true, data, isLive: true };
+  // 2. In browser: use local CORS proxy (runs on http://127.0.0.1:3001 or localhost:3001)
+  const isHostedOnProxy = window.location.port === '3001';
+  const proxyEndpoints = isHostedOnProxy
+    ? [`/proxy?url=${encodeURIComponent(url)}`]
+    : [
+        `http://127.0.0.1:3001/proxy?url=${encodeURIComponent(url)}`,
+        `http://localhost:3001/proxy?url=${encodeURIComponent(url)}`
+      ];
+
+  for (const proxyUrl of proxyEndpoints) {
+    try {
+      const ctrl = new AbortController();
+      const tid = setTimeout(() => ctrl.abort(), timeoutMs);
+      const res = await fetch(proxyUrl, { signal: ctrl.signal });
+      clearTimeout(tid);
+      if (res.ok) {
+        const data = await res.json();
+        return { ok: true, data, isLive: true };
+      }
+    } catch (e) {
+      // Try next endpoint
     }
-  } catch (e) {
-    // Local proxy timed out or not running
   }
 
+  console.warn(`[Proxy] Cannot connect to local proxy at http://127.0.0.1:3001. Please run "npm start" in terminal to fetch live NSE/BSE data.`);
   return { ok: false, data: null, isLive: false };
 }
 
@@ -1204,7 +1214,11 @@ async function fetchSymbols(exchange) {
   updateStatusBadge('NSE');
   populateIndexDropdown('NSE');
   populateSymbolDropdown('NSE');
-  hideFilterStatus();
+  if (!isLive) {
+    showFilterStatus('⚠️ Proxy offline: Open via Desktop shortcut "Option Chain Scanner" or run "npm start"', false);
+  } else {
+    hideFilterStatus();
+  }
 }
 
 function populateIndexDropdown(exchange) {
@@ -1990,9 +2004,11 @@ function updateStatusBadge(exchange) {
   if (state.isLive) {
     apiStatusBadge.className = 'api-status-badge live';
     apiStatusBadge.innerHTML = '● Live API';
+    apiStatusBadge.title = 'Connected to live exchange API';
   } else {
     apiStatusBadge.className = 'api-status-badge cached';
-    apiStatusBadge.innerHTML = '● API Ready';
+    apiStatusBadge.innerHTML = '● Proxy Offline (Seed Data)';
+    apiStatusBadge.title = 'Start proxy server (node proxy.js) for real-time live data';
   }
 }
 

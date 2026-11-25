@@ -4,6 +4,7 @@
   "description": "",
   "main": "app.js",
   "scripts": {
+    "start": "node proxy.js",
     "proxy": "node proxy.js",
     "sync": "powershell -Command \"Copy-Item index.html, style.css, app.js, exchange-seed.js, papaparse.min.js, manifest.json, icon-192.png, icon-512.png -Destination www -Force; npx cap copy android\"",
     "pack-zip": "powershell -Command \"Compress-Archive -Path index.html, style.css, app.js, exchange-seed.js, papaparse.min.js, manifest.json, icon-192.png, icon-512.png -DestinationPath OptionChainScanner-App.zip -Force\""
