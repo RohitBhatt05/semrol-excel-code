@@ -1131,6 +1131,7 @@ async function fetchWithProxy(url, timeoutMs = 15000) {
     } catch (e) {
       // Native fetch failed
     }
+    return { ok: false, data: null, isLive: false };
   }
 
   // 2. In browser: use local CORS proxy (runs on http://127.0.0.1:3001 or localhost:3001)
