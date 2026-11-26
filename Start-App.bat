@@ -8,7 +8,7 @@ if %errorlevel% equ 0 (
     echo Proxy server is already active on port 3001.
 ) else (
     echo Starting Option Chain Proxy server in background...
-    start /b "" node proxy.js
+    start "" /b "C:\nvm4w\nodejs\node.exe" "D:\semrol-excel-code\proxy.js"
     timeout /t 2 /nobreak >nul
 )
 
